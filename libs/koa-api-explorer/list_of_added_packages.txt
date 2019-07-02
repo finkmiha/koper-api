@@ -1,0 +1,10 @@
+"acorn": "^5.4.1",
+"callsite": "^1.0.0",
+"comment-parser": "^0.5.0",
+"js-yaml": "^3.10.0",
+"koa-oai-router": "^1.1.2",
+"lodash.assign": "^4.2.0",
+"lodash.isfunction": "^3.0.9",
+"lodash.isstring": "^4.0.1",
+"lodash.pick": "^4.4.0",
+"path-to-regexp": "^2.1.0"
