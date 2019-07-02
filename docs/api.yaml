@@ -1,0 +1,529 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: API Explorer Dev
+contact:
+  name: SignApps Team
+  email: info@signapps.io
+consumes:
+  - application/json
+  - application/x-www-form-urlencoded
+produces:
+  - application/json
+  - text/html
+basePath: /api
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      description: Login.
+      summary: auth.login&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspLogin.
+      operationId: auth.login
+      x-controller:
+        - file: auth
+          handler: login
+      parameters:
+        - name: email
+          in: formData
+          description: ''
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: ''
+          required: true
+          type: string
+  /auth/logout:
+    get:
+      tags:
+        - Auth
+      description: Logout.
+      summary: auth.logout&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspLogout.
+      operationId: auth.logout
+      x-controller:
+        - file: auth
+          handler: logout
+      parameters: []
+  /project:
+    post:
+      tags:
+        - Project
+      description: Returns a list of all projects.
+      summary: >-
+        project.store&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspReturns a list of
+        all projects.
+      operationId: project.store
+      x-controller:
+        - file: project
+          handler: store
+      parameters:
+        - name: name
+          in: formData
+          description: Project name.
+          required: true
+          type: string
+        - name: tag
+          in: formData
+          description: Project tag can be between 1 and 10 characters.
+          required: true
+          type: string
+  /project/all:
+    get:
+      tags:
+        - Project
+      description: Returns a list of all projects.
+      summary: >-
+        project.index&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspReturns a list of
+        all projects.
+      operationId: project.index
+      x-controller:
+        - file: project
+          handler: index
+      parameters: []
+  '/project/{id}/update':
+    put:
+      tags:
+        - Project
+      description: Update project by id.
+      summary: >-
+        project.update&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspUpdate project by
+        id.
+      operationId: project.update
+      x-controller:
+        - file: project
+          handler: update
+      parameters:
+        - name: id
+          in: path
+          description: Project id.
+          required: true
+          type: integer
+        - name: name
+          in: formData
+          description: Project name.
+          required: false
+          type: string
+        - name: tag
+          in: formData
+          description: Project tag can be between 1 and 10 characters.
+          required: false
+          type: string
+  '/project/{id}/delete':
+    delete:
+      tags:
+        - Project
+      description: Delete project by id.
+      summary: >-
+        project.delete&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspDelete project by
+        id.
+      operationId: project.delete
+      x-controller:
+        - file: project
+          handler: destroy
+      parameters:
+        - name: id
+          in: path
+          description: Project id.
+          required: true
+          type: integer
+  /users:
+    post:
+      tags:
+        - User
+      description: Register a new user.
+      summary: users.store&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspRegister a new user.
+      operationId: users.store
+      x-controller:
+        - file: user
+          handler: store
+      parameters:
+        - name: email
+          in: formData
+          description: ''
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: >-
+            Please enter stronger password. Use at least 1 lowercase character
+            and at least 1 number.
+          required: true
+          type: string
+        - name: role
+          in: formData
+          description: 'Available roles: ''admin'' or ''user''.'
+          required: true
+          type: string
+  /users/email:
+    get:
+      tags:
+        - User
+      description: Check if a user with the given email already exists.
+      summary: >-
+        users.email.show&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspCheck if a user
+        with the given email already exists.
+      operationId: users.email.show
+      x-controller:
+        - file: user
+          handler: showEmail
+      parameters:
+        - name: email
+          in: query
+          description: ''
+          required: true
+          type: string
+  /users/me:
+    get:
+      tags:
+        - User
+      description: Get the logged in user.
+      summary: >-
+        users.showMe&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspGet the logged in
+        user.
+      operationId: users.showMe
+      x-controller:
+        - file: user
+          handler: showMe
+      parameters: []
+    put:
+      tags:
+        - User
+      description: Update the logged in user.
+      summary: >-
+        users.updateMe&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspUpdate the logged
+        in user.
+      operationId: users.updateMe
+      x-controller:
+        - file: user
+          handler: updateMe
+      parameters:
+        - name: first_name
+          in: formData
+          description: ''
+          required: false
+          type: string
+        - name: last_name
+          in: formData
+          description: ''
+          required: false
+          type: string
+        - name: backup_email
+          in: formData
+          description: ''
+          required: false
+          type: string
+        - name: work_phone
+          in: formData
+          description: ''
+          required: false
+          type: string
+        - name: private_phone
+          in: formData
+          description: ''
+          required: false
+          type: string
+        - name: old_password
+          in: formData
+          description: If you want to change the password you must enter the old password.
+          required: false
+          type: string
+        - name: password
+          in: formData
+          description: >-
+            Password must contain at least 1 uppercase, 1 lowercase, 1 numeric
+            and 1 special character.
+          required: false
+          type: string
+        - name: is_sms_notify_enabled
+          in: formData
+          description: ''
+          required: false
+          type: boolean
+        - name: notify_phone
+          in: formData
+          description: ''
+          required: false
+          type: string
+        - name: is_email_notify_enabled
+          in: formData
+          description: ''
+          required: false
+          type: boolean
+        - name: notify_email
+          in: formData
+          description: ''
+          required: false
+          type: string
+        - name: is_push_notify_enabled
+          in: formData
+          description: ''
+          required: false
+          type: boolean
+    delete:
+      tags:
+        - User
+      description: Delete the logged in user.
+      summary: >-
+        users.destroyMe&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspDelete the
+        logged in user.
+      operationId: users.destroyMe
+      x-controller:
+        - file: user
+          handler: destroyMe
+      parameters: []
+  /verify/send/email:
+    post:
+      tags:
+        - Verify
+      description: Resend verification e-mail.
+      summary: >-
+        verify.sendEmail&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspResend
+        verification e-mail.
+      operationId: verify.sendEmail
+      x-controller:
+        - file: verify
+          handler: sendVerifyEmail
+      parameters:
+        - name: email
+          in: formData
+          description: User's email.
+          required: true
+          type: string
+  /verify/verify/token:
+    post:
+      tags:
+        - Verify
+      description: Verify verification token.
+      summary: >-
+        verify.verifyToken&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspVerify
+        verification token.
+      operationId: verify.verifyToken
+      x-controller:
+        - file: verify
+          handler: verifyToken
+      parameters:
+        - name: token
+          in: formData
+          description: ''
+          required: true
+          type: string
+  /verify/verify:
+    post:
+      tags:
+        - Verify
+      description: Verify user's email.
+      summary: >-
+        verify.verify&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspVerify user's
+        email.
+      operationId: verify.verify
+      x-controller:
+        - file: verify
+          handler: verify
+      parameters:
+        - name: token
+          in: formData
+          description: ''
+          required: true
+          type: string
+  /type:
+    post:
+      tags:
+        - WorkType
+      description: Returns a list of all projects.
+      summary: >-
+        type.store&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspReturns a list of all
+        projects.
+      operationId: type.store
+      x-controller:
+        - file: work-type
+          handler: store
+      parameters:
+        - name: type
+          in: formData
+          description: Work type.
+          required: true
+          type: string
+  /type/all:
+    get:
+      tags:
+        - WorkType
+      description: Returns a list of all work types.
+      summary: >-
+        type.index&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspReturns a list of all
+        work types.
+      operationId: type.index
+      x-controller:
+        - file: work-type
+          handler: index
+      parameters: []
+  '/type/{id}/update':
+    put:
+      tags:
+        - WorkType
+      description: Update work type by id.
+      summary: >-
+        type.update&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspUpdate work type by
+        id.
+      operationId: type.update
+      x-controller:
+        - file: work-type
+          handler: update
+      parameters:
+        - name: id
+          in: path
+          description: Project id.
+          required: true
+          type: integer
+        - name: type
+          in: formData
+          description: Work type.
+          required: false
+          type: string
+  '/type/{id}/delete':
+    delete:
+      tags:
+        - WorkType
+      description: Delete work type by id.
+      summary: >-
+        type.delete&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspDelete work type by
+        id.
+      operationId: type.delete
+      x-controller:
+        - file: work-type
+          handler: destroy
+      parameters:
+        - name: id
+          in: path
+          description: Project id.
+          required: true
+          type: integer
+  /work/show:
+    get:
+      tags:
+        - Work
+      description: Returns all user work done.
+      summary: >-
+        work.show&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspReturns all user work
+        done.
+      operationId: work.show
+      x-controller:
+        - file: work
+          handler: showWork
+      parameters: []
+  /work:
+    post:
+      tags:
+        - Work
+      description: Store new work interval.
+      summary: >-
+        work.store&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspStore new work
+        interval.
+      operationId: work.store
+      x-controller:
+        - file: work
+          handler: storeWork
+      parameters:
+        - name: project_id
+          in: formData
+          description: Project id.
+          required: true
+          type: integer
+        - name: type_id
+          in: formData
+          description: Work type id.
+          required: true
+          type: integer
+        - name: start
+          in: formData
+          description: Work interval start.
+          required: true
+          type: string
+        - name: end
+          in: formData
+          description: Work interval end.
+          required: false
+          type: string
+        - name: description
+          in: formData
+          description: Work description.
+          required: false
+          type: string
+  '/work/{id}/update':
+    put:
+      tags:
+        - Work
+      description: Update work interval.
+      summary: >-
+        work.update&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspUpdate work
+        interval.
+      operationId: work.update
+      x-controller:
+        - file: work
+          handler: updateWork
+      parameters:
+        - name: id
+          in: path
+          description: Work id.
+          required: true
+          type: integer
+        - name: project_id
+          in: formData
+          description: Project id.
+          required: false
+          type: integer
+        - name: type_id
+          in: formData
+          description: Work type id.
+          required: false
+          type: integer
+        - name: start
+          in: formData
+          description: Work interval start.
+          required: false
+          type: string
+        - name: end
+          in: formData
+          description: Work interval end.
+          required: false
+          type: string
+        - name: description
+          in: formData
+          description: Work description.
+          required: false
+          type: string
+  '/work/{id}/delete':
+    delete:
+      tags:
+        - Work
+      description: Delete work interval.
+      summary: >-
+        work.delete&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspDelete work
+        interval.
+      operationId: work.delete
+      x-controller:
+        - file: work
+          handler: deleteWork
+      parameters:
+        - name: id
+          in: path
+          description: Work id.
+          required: true
+          type: integer
+  /work/day:
+    post:
+      tags:
+        - Work
+      description: Get daily work done.
+      summary: work.day&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspGet daily work done.
+      operationId: work.day
+      x-controller:
+        - file: work
+          handler: dailyWork
+      parameters:
+        - name: day
+          in: formData
+          description: Day of work.
+          required: true
+          type: string
+description: API.
