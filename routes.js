@@ -54,7 +54,7 @@ router.post('auth.login', '/auth/login', AuthController.login);
 
 // User.
 // User register.
-router.post('users.store', '/users', UserController.store);
+router.post('users.store', '/users/store', UserController.store);
 router.get('users.email.show', '/users/email', UserController.showEmail);
 // router.get('users.show.email', '/users/email', UserController.showEmail);
 // router.post('users.store', '/users', UserController.store);
@@ -73,7 +73,7 @@ router.group('auth', () => {
 	router.get('auth.logout', '/auth/logout', AuthController.logout);
 
 	// User.
-	router.post('users.store', '/users', UserController.store);
+	router.post('users.store', '/users/store', UserController.store);
 	router.get('users.email.show', '/users/email', UserController.showEmail);
 	router.get('users.showMe', '/users/me', UserController.showMe);
 	router.put('users.updateMe', '/users/me', UserController.updateMe);
@@ -92,11 +92,12 @@ router.group('auth', () => {
 	router.del('type.delete', '/type/:id(\\d+)/delete', WorkTypeController.destroy);
 
 	// Work.
-	router.get('work.show', '/work/show', WorkController.showWork);
-	router.post('work.store', '/work', WorkController.storeWork);
+	router.get('work.show', '/work', WorkController.showWork);
+	router.post('work.store', '/work/store', WorkController.storeWork);
 	router.put('work.update', '/work/:id(\\d+)/update', WorkController.updateWork);
 	router.del('work.delete', '/work/:id(\\d+)/delete', WorkController.deleteWork);
 	router.post('work.day', '/work/day', WorkController.dailyWork);
+	router.post('work.project', '/work/project', WorkController.projectWork);
 });
 
 /**
