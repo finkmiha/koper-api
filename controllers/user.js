@@ -38,9 +38,9 @@ async function showEmail(ctx, next) {
 	}));
 
 	let count = await User.where('email', body.email).count();
-	ctx.assert(count <= 0, 400, ctx.i18n.__('The username already exists. Please use a different username or login.'), { field: 'email' });
+	ctx.assert(count <= 0, 400, ctx.i18n.__('This email is alredy taken. Please use a different email or login.'), { field: 'email' });
 
-	ctx.body = { message: ctx.i18n.__('Username is still free.') };
+	ctx.body = { message: ctx.i18n.__('Email is still free.') };
 }
 
 /**
