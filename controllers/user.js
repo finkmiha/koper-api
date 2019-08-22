@@ -46,16 +46,22 @@ async function showEmail(ctx, next) {
 /**
  * Register a new user.
  *
+ * @param {string} first_name
+ * @param {string} last_name
  * @param {string} email
  * @param {string} password Please enter stronger password. Use at least 1 lowercase character and at least 1 number.
+ * @param {string} type
  * @param {string} role Available roles: 'admin' or 'user'.
  *
  */
 async function store(ctx, next) {
 	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+		first_name: Joi.string().required(),
+		last_name: Joi.string().required(),
 		email: Joi.string().email().min(4).max(64).required().error(() => ctx.i18n.__('Please enter a valid email address.')),
 		password: Joi.password().required(),
 		role: Joi.string().valid(['admin', 'user']).default('user'),
+		type: Joi.string().valid(['Employee', 'Student']).required(),
 	}));
 
 	// Get the user role.
