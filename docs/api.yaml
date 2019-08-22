@@ -49,10 +49,8 @@ paths:
     post:
       tags:
         - Project
-      description: Returns a list of all projects.
-      summary: >-
-        project.store&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspReturns a list of
-        all projects.
+      description: Store project.
+      summary: project.store&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspStore project.
       operationId: project.store
       x-controller:
         - file: project
@@ -67,6 +65,11 @@ paths:
           in: formData
           description: Project tag can be between 1 and 10 characters.
           required: true
+          type: string
+        - name: color
+          in: formData
+          description: Project color hex code.
+          required: false
           type: string
   /project/all:
     get:
@@ -109,6 +112,11 @@ paths:
           description: Project tag can be between 1 and 10 characters.
           required: false
           type: string
+        - name: color
+          in: formData
+          description: Project color hex code.
+          required: false
+          type: string
   '/project/{id}/delete':
     delete:
       tags:
@@ -127,7 +135,7 @@ paths:
           description: Project id.
           required: true
           type: integer
-  /users:
+  /users/store:
     post:
       tags:
         - User
@@ -138,6 +146,16 @@ paths:
         - file: user
           handler: store
       parameters:
+        - name: first_name
+          in: formData
+          description: ''
+          required: true
+          type: string
+        - name: last_name
+          in: formData
+          description: ''
+          required: true
+          type: string
         - name: email
           in: formData
           description: ''
@@ -148,6 +166,11 @@ paths:
           description: >-
             Please enter stronger password. Use at least 1 lowercase character
             and at least 1 number.
+          required: true
+          type: string
+        - name: type
+          in: formData
+          description: ''
           required: true
           type: string
         - name: role
@@ -330,10 +353,8 @@ paths:
     post:
       tags:
         - WorkType
-      description: Returns a list of all projects.
-      summary: >-
-        type.store&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspReturns a list of all
-        projects.
+      description: Add a new work type.
+      summary: type.store&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspAdd a new work type.
       operationId: type.store
       x-controller:
         - file: work-type
@@ -398,7 +419,7 @@ paths:
           description: Project id.
           required: true
           type: integer
-  /work/show:
+  /work:
     get:
       tags:
         - Work
@@ -411,7 +432,7 @@ paths:
         - file: work
           handler: showWork
       parameters: []
-  /work:
+  /work/store:
     post:
       tags:
         - Work
@@ -427,7 +448,7 @@ paths:
         - name: project_id
           in: formData
           description: Project id.
-          required: true
+          required: false
           type: integer
         - name: type_id
           in: formData
@@ -526,4 +547,22 @@ paths:
           description: Day of work.
           required: true
           type: string
+  /work/project:
+    post:
+      tags:
+        - Work
+      description: Get users work history for a specific project.
+      summary: >-
+        work.project&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspGet users work
+        history for a specific project.
+      operationId: work.project
+      x-controller:
+        - file: work
+          handler: projectWork
+      parameters:
+        - name: project_ids
+          in: formData
+          description: Project id.
+          required: true
+          type: array
 description: API.
