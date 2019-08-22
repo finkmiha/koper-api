@@ -77,7 +77,7 @@ async function checkCredentials(ctx, userQuery, password) {
 
 	// Get the user & check if the user was found.
 	let user = await userQuery.select(['id', 'password', 'email_verified_at']).first();
-	ctx.assert(user, 400, ctx.i18n.__('There is no user with such user name in our system. Please check your login details or click <Register as a new user>.'), { field: 'email' });
+	ctx.assert(user, 400, ctx.i18n.__('There is no user with such email in our system. Please check your login details or click "Register now".'), { field: 'email' });
 
 	let userId = user.get('id');
 	await throttlePerUser(ctx, userId);
