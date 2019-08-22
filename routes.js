@@ -82,6 +82,7 @@ router.group('auth', () => {
 	// Project.
 	router.post('project.store', '/project', ProjectController.store);
 	router.get('project.index', '/project/all', ProjectController.index);
+	router.get('project.index', '/project/work/all', ProjectController.getWorkProjects);
 	router.put('project.update', '/project/:id(\\d+)/update', ProjectController.update);
 	router.del('project.delete', '/project/:id(\\d+)/delete', ProjectController.destroy);
 

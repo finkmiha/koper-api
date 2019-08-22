@@ -86,7 +86,7 @@ async function storeWork(ctx, next) {
 			let work = new Work({
 				user_id: user.id,
 				project_id: body.project_id,
-				type_id: 4,
+				type_id: 4, //TODO: Remove hard coded id (Work_type: extra hours- id).
 				start: start,
 				end: end,
 				day: day,
@@ -112,7 +112,7 @@ async function storeWork(ctx, next) {
 			let workafter8hours = new Work({
 				user_id: user.id,
 				project_id: body.project_id,
-				type_id: 4,
+				type_id: 4,  //TODO: Remove hard coded id (Work_type: extra hours- id).
 				start: time,  // start = above ends
 				end: end,
 				day: day,

@@ -9,6 +9,15 @@ const Project = require('../models/project');
  *
  */
 async function index(ctx, next) {
+	let projects = await Project.get();
+	ctx.body = projects;
+}
+
+/**
+ * Returns a list of all work projects.
+ *
+ */
+async function getWorkProjects(ctx, next) {
 	let projects = await Project.whereNotIn('name', ["Vacation", "Sick leave", "Extra hours"]).get();
 	ctx.body = projects;
 }
@@ -102,4 +111,5 @@ module.exports = {
 	store,
 	update,
 	destroy,
+	getWorkProjects,
 };
