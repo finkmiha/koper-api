@@ -4,7 +4,7 @@ const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 // const QWE = require('../helpers/qwe');
-const EmailHelper = require('../helpers/email');
+//TODO: const EmailHelper = require('../helpers/email');
 // const LambdaHelper = require('../helpers/lambda');
 
 const isArray = require('lodash/isArray');
@@ -78,11 +78,11 @@ async function sendVerificationEmail(ctx, userId, email) {
 	// Build verify link.
 	let actionUrl = `${process.env.CLIENT_BASE_URL}/api/verify/verify/${token}`;
 
-	// Send the verify email.
-	EmailHelper.sendEmail(ctx, 'verify', {
-		email_address: user.email,
-		action_url: actionUrl,
-	});
+	//TODO: Send the verify email.
+	// EmailHelper.sendEmail(ctx, 'verify', {
+	// 	email_address: user.email,
+	// 	action_url: actionUrl,
+	// });
 
 	return { message: ctx.i18n.__('E-mail sent.') };
 }
@@ -98,7 +98,7 @@ async function sendVerificationEmail(ctx, userId, email) {
 async function store(ctx, data, role_ids = [], emailVerified = false) {
 	// Check for duplicate email.
 	let emailCount = await User.where('email', data.email).count();
-	ctx.assert(emailCount <= 0, 400, ctx.i18n.__('The username already exists. Please use a different username or login.'), { field: 'email' });
+	ctx.assert(emailCount <= 0, 400, ctx.i18n.__('This email is alredy taken. Please use a different email or login.'), { field: 'email' });
 
 	// Check if roles exist.
 	if (role_ids.length > 0) {
@@ -141,7 +141,7 @@ async function store(ctx, data, role_ids = [], emailVerified = false) {
 	if (!emailVerified) {
 		// TODO: Send different email depending if password was set or not.
 		// Send the "set password"/"email verification"/"invitation" email. Don't await.
-		await sendVerificationEmail(ctx, userId, null, data.app_type);
+		// await sendVerificationEmail(ctx, userId, null, data.app_type);
 	}
 
 	return user;
