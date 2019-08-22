@@ -76,13 +76,11 @@ async function storeWork(ctx, next) {
 	let time_elapsed = moment(end).diff(start, 'seconds');
 	let daily_work = await UserDAO.dailyWork(ctx, user.id, day);
 
-
-	ctx.throw(400, ctx.i18n.__("Good try, you can't work for more then 24 hours in one day"));
-
-
 	//Store effective work and handle extra daily hours
 	if (body.type_id === 1) {
-
+		if (daily_work + time_elapsed > 24*60*60 ) {
+			ctx.throw(400, ctx.i18n.__("Good try, you can't work for more then 24 hours in one day"));
+		}
 		//If employee work for more than 8 hours store excess hours as extra hours
 		if ( daily_work > 8*60*60 ) {
 			let work = new Work({
@@ -147,17 +145,20 @@ async function storeWork(ctx, next) {
 
 		let dates = arrayOfDates.map(d => moment.utc(d).format('YYYY-MM-DD'));
 		for (let date of dates) {
-			let work = new Work({
-				user_id: user.id,
-				project_id: body.project_id,
-				type_id: body.type_id,
-				start: moment.utc(date).format('YYYY-MM-DD 09:00:00'),
-				end: moment.utc(date).format('YYYY-MM-DD 17:00:00'),
-				day: date,
-				time_elapsed: dayOfWork,
-				description: body.description,
-			});
-			await work.save();
+			//Skip weekends when storing sick leave and vacations.
+			if (moment.utc(date).day() !== 6 && moment.utc(date).day() !== 0) {
+				let work = new Work({
+					user_id: user.id,
+					project_id: body.project_id,
+					type_id: body.type_id,
+					start: moment.utc(date).format('YYYY-MM-DD 09:00:00'),
+					end: moment.utc(date).format('YYYY-MM-DD 17:00:00'),
+					day: date,
+					time_elapsed: dayOfWork,
+					description: body.description,
+				});
+				await work.save();
+			  }
 		}
 	}
 	ctx.body = 'Work saved.';
