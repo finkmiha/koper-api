@@ -14,7 +14,7 @@ async function index(ctx, next) {
 }
 
 /**
- * Returns a list of all projects.
+ * Add a new work type.
  *
  * @param {string} type Work type.
  */
