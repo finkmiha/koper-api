@@ -84,6 +84,7 @@ async function storeWork(ctx, next) {
 	let daily_work = await UserDAO.dailyWork(ctx, user.id, day);
 
 	//Store effective work and handle extra daily hours
+	//TODO: Replace hard coded ids
 	if (body.type_id === 1) {
 		if (daily_work + time_elapsed > 24*60*60 ) {
 			ctx.throw(400, ctx.i18n.__("Good try, you can't work for more then 24 hours in one day"));
@@ -141,6 +142,20 @@ async function storeWork(ctx, next) {
 			});
 			await work.save();
 		}
+	}
+	// Store lunch break
+	else if (body.type_id === 5) {
+		let work = new Work({
+			user_id: user.id,
+			project_id: body.project_id,
+			type_id: body.type_id,
+			start: start,
+			end: end,
+			day: day,
+			time_elapsed: time_elapsed,
+			description: body.description,
+		});
+		await work.save();
 	}
 	//Store vacation / sick leave (TODO: Student vacation/ sick leave has no hours, employee gets 8 hours for vacation day)
 	else {
