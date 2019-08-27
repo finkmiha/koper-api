@@ -3,7 +3,11 @@
 const Joi = require('../helpers/joi-ext');
 const Moment = require('moment');
 const MomentRange = require('moment-range');
+const momentDurationFormatSetup = require('moment-duration-format');
+
+
 const moment = MomentRange.extendMoment(Moment);
+momentDurationFormatSetup(moment);
 
 const Work = require('../models/work');
 const Project = require('../models/project');
@@ -44,7 +48,10 @@ function arrayUnique(array) {
 async function showWork(ctx, next) {
 	let user = await UserDAO.show(ctx, ctx.state.user.id, true);
 	let work = await Work.where('user_id', user.id).withSelect('type', 'type').withSelect('project', 'name').get();
-
+	for (let w of work.models) {
+		let daily_work = await UserDAO.dailyWork(ctx, user.id, w.get('day'));
+		w.set('daily_work', daily_work);
+	}
 	// Check if the project was found.
 	ctx.assert(work, 400, ctx.i18n.__(`Work for user with id ${user.id} not found.`));
 	ctx.body = work;
@@ -333,6 +340,78 @@ async function projectWork(ctx, next) {
 }
 
 /**
+ * Get users work mothly statistics.
+ *
+ */
+async function monthlyWorkStats(ctx, next) {
+	// let user = await UserDAO.show(ctx, ctx.state.user.id, true);
+
+	let vacation = await WorkType.select('id').where('type', 'Vacation').first();
+	let vacation_id = vacation.get('id');
+
+	let sick_leave = await WorkType.select('id').where('type', 'Sick leave').first();
+	let sick_leave_id = sick_leave.get('id');
+
+	let work_types = await WorkType.select('id').whereNotIn('type', ["Vacation", "Sick leave"]).get();
+	let work_type_ids = []
+	for (let wt of work_types.models) {
+		work_type_ids.push(wt.get('id'));
+	}
+	let dates = [];
+	dates = generateDatesOfAMonth();
+	dates = dates.map(d => d.days);
+	// Cut future days
+	let cutIndex = dates.indexOf(moment.utc().format('YYYY-MM-DD'));
+	dates = dates.slice(0,cutIndex+1)
+	// Remove weekends
+	dates = dates.filter(date => (moment.utc(date).day() !== 6 && moment.utc(date).day() !== 0));
+
+	let should_have_worked = dates.length * 8 * 60 * 60;
+	let data = await Work.select('time_elapsed').where('user_id', 1).whereIn('type_id', work_type_ids).get();
+	let hours = []
+	let monthly_hours = 0;
+	for (let d of data.models) {
+		hours.push(d.get('time_elapsed'));
+		monthly_hours = monthly_hours + d.get('time_elapsed');
+	}
+
+	let vacation_data = await Work.select('time_elapsed').where('user_id', 1).where('type_id', vacation_id).get();
+	let vacation_hours = 0;
+	for (let vd of vacation_data.models) {
+		vacation_hours = vacation_hours + vd.get('time_elapsed');
+	}
+
+	let sick_leave_data = await Work.select('time_elapsed').where('user_id', 1).where('type_id', sick_leave_id).get();
+	let sick_leave_hours = 0;
+	for (let sld of sick_leave_data.models) {
+		sick_leave_hours = sick_leave_hours + sld.get('time_elapsed');
+	}
+
+	let text = "";
+	let difference = monthly_hours - should_have_worked ;
+	let schedule = moment.duration(Math.abs(difference), "seconds").format("d [day] h [h] m [min] s [sec]");
+	if (difference >= 0 ) {
+		text = `You are ${schedule} ahead of schedule.`
+	}
+	else {
+		text = `You are ${schedule} behind schedule.`
+	}
+	should_have_worked = moment.duration(should_have_worked, "seconds").format("h [h] m [min] s [sec]")
+	monthly_hours = moment.duration(monthly_hours, "seconds").format("h [h] m [min] s [sec]")
+	vacation_hours = moment.duration(vacation_hours, "seconds").format("h [h] m [min] s [sec]")
+	sick_leave_hours = moment.duration(sick_leave_hours, "seconds").format("h [h] m [min] s [sec]")
+
+	ctx.body = {
+		should_have_worked,
+		monthly_hours,
+		vacation_hours,
+		sick_leave_hours,
+		schedule_text: text,
+	};
+}
+
+// monthlyWorkStats();
+/**
  * Exported functions.
  * @type {Object}
  */
@@ -343,4 +422,5 @@ module.exports = {
 	deleteWork,
 	dailyWork,
 	projectWork,
+	monthlyWorkStats,
 };
