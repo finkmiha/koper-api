@@ -182,6 +182,8 @@ async function update(ctx, userId, data, role_ids = null) {
 
 	if (data.first_name != null) user.set('first_name', data.first_name);
 	if (data.last_name != null) user.set('last_name', data.last_name);
+	if (data.email != null) user.set('email', data.email); //TODO: Send verification email if email is changed!
+	if (data.type != null) user.set('type', data.type);
 	if (data.backup_email != null) user.set('backup_email', data.backup_email);
 	if (data.private_phone != null) user.set('private_phone', data.private_phone);
 	if (data.work_phone != null) {
