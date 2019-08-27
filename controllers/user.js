@@ -18,6 +18,14 @@ async function showMe(ctx, next) {
 }
 
 /**
+ * Get the logged in user.
+ */
+async function showMeData(ctx, next) {
+	let user = await UserDAO.show(ctx, ctx.state.user.id, true);
+	ctx.body = user;
+}
+
+/**
  * Get the logged in user's account page info.
  */
 async function showMeAccount(ctx, next) {
@@ -79,6 +87,7 @@ async function store(ctx, next) {
  *
  * @param {string} [first_name]
  * @param {string} [last_name]
+ * @param {string} [type]
  * @param {string} [backup_email]
  * @param {string} [work_phone]
  * @param {string} [private_phone]
@@ -96,6 +105,7 @@ async function updateMe(ctx, next) {
 	let body = Joi.validate(ctx.request.body, Joi.object().keys({
 		first_name: Joi.string().allow('').allow(null).default(null),
 		last_name: Joi.string().allow('').allow(null).default(null),
+		type: Joi.string().allow(null).default(null),
 		backup_email: Joi.string().allow('').allow(null).default(null),
 		work_phone: Joi.string().allow('').allow(null).default(null),
 		private_phone: Joi.string().allow('').allow(null).default(null),
@@ -164,6 +174,7 @@ async function destroyMe(ctx, next) {
  */
 module.exports = {
 	showMe,
+	showMeData,
 	showMeAccount,
 	showEmail,
 	store,
