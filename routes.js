@@ -80,7 +80,7 @@ router.group('auth', () => {
 	router.del('users.destroyMe', '/users/me', UserController.destroyMe);
 
 	// Project.
-	router.post('project.store', '/project', ProjectController.store);
+	router.post('project.store', '/project/store', ProjectController.store);
 	router.get('project.index', '/project/all', ProjectController.index);
 	router.get('project.index', '/project/work/all', ProjectController.getWorkProjects);
 	router.put('project.update', '/project/:id(\\d+)/update', ProjectController.update);
@@ -94,6 +94,7 @@ router.group('auth', () => {
 
 	// Work.
 	router.get('work.show', '/work', WorkController.showWork);
+	router.get('work.stats', '/work/stats/month', WorkController.monthlyWorkStats);
 	router.post('work.store', '/work/store', WorkController.storeWork);
 	router.put('work.update', '/work/:id(\\d+)/update', WorkController.updateWork);
 	router.del('work.delete', '/work/:id(\\d+)/delete', WorkController.deleteWork);
