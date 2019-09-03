@@ -95,6 +95,7 @@ router.group('auth', () => {
 	// Work.
 	router.get('work.show', '/work', WorkController.showWork);
 	router.get('work.stats', '/work/stats/month', WorkController.monthlyWorkStats);
+	router.get('work.stats.all', '/work/stats/all', WorkController.allTimeWorkStats);
 	router.post('work.store', '/work/store', WorkController.storeWork);
 	router.put('work.update', '/work/:id(\\d+)/update', WorkController.updateWork);
 	router.del('work.delete', '/work/:id(\\d+)/delete', WorkController.deleteWork);

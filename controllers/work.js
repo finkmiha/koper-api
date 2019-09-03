@@ -355,11 +355,62 @@ async function projectWork(ctx, next) {
 }
 
 /**
- * Get users work mothly statistics.
+ * Get users all time work statistics.
+ *
+ */
+async function allTimeWorkStats(ctx, next) {
+	let user = await UserDAO.show(ctx, ctx.state.user.id, true);
+
+	let vacation = await WorkType.select('id').where('type', 'Vacation').first();
+	let vacation_id = vacation.get('id');
+
+	let sick_leave = await WorkType.select('id').where('type', 'Sick leave').first();
+	let sick_leave_id = sick_leave.get('id');
+
+	let work_types = await WorkType.select('id').whereNotIn('type', ["Vacation", "Sick leave"]).get();
+	let work_type_ids = []
+	for (let wt of work_types.models) {
+		work_type_ids.push(wt.get('id'));
+	}
+
+	let work_data = await Work.select('time_elapsed').where('user_id', user.id).whereIn('type_id', work_type_ids).get();
+	let hours = []
+	let monthly_hours = 0;
+	for (let wd of work_data.models) {
+		hours.push(wd.get('time_elapsed'));
+		monthly_hours = monthly_hours + wd.get('time_elapsed');
+	}
+
+	let vacation_data = await Work.select('time_elapsed').where('user_id', user.id).where('type_id', vacation_id).get();
+	let vacation_hours = 0;
+	for (let vd of vacation_data.models) {
+		vacation_hours = vacation_hours + vd.get('time_elapsed');
+	}
+
+	let sick_leave_data = await Work.select('time_elapsed').where('user_id', user.id).where('type_id', sick_leave_id).get();
+	let sick_leave_hours = 0;
+	for (let sld of sick_leave_data.models) {
+		sick_leave_hours = sick_leave_hours + sld.get('time_elapsed');
+	}
+
+	monthly_hours = moment.duration(monthly_hours, "seconds").format("h [h] m [min] s [sec]")
+	vacation_hours = moment.duration(vacation_hours, "seconds").format("h [h] m [min] s [sec]")
+	sick_leave_hours = moment.duration(sick_leave_hours, "seconds").format("h [h] m [min] s [sec]")
+
+	ctx.body = {
+		monthly_hours,
+		vacation_hours,
+		sick_leave_hours,
+	};
+}
+
+/**
+ * Get users mothly work statistics.
  *
  */
 async function monthlyWorkStats(ctx, next) {
-	// let user = await UserDAO.show(ctx, ctx.state.user.id, true);
+	let user = await UserDAO.show(ctx, ctx.state.user.id, true);
+	let month = moment.utc().format('YYYY-MM');
 
 	let vacation = await WorkType.select('id').where('type', 'Vacation').first();
 	let vacation_id = vacation.get('id');
@@ -382,21 +433,21 @@ async function monthlyWorkStats(ctx, next) {
 	dates = dates.filter(date => (moment.utc(date).day() !== 6 && moment.utc(date).day() !== 0));
 
 	let should_have_worked = dates.length * 8 * 60 * 60;
-	let data = await Work.select('time_elapsed').where('user_id', 1).whereIn('type_id', work_type_ids).get();
+	let work_data = await Work.select('time_elapsed').where('user_id', user.id).whereIn('type_id', work_type_ids).where('day', 'like', `${month}%`).get();
 	let hours = []
 	let monthly_hours = 0;
-	for (let d of data.models) {
-		hours.push(d.get('time_elapsed'));
-		monthly_hours = monthly_hours + d.get('time_elapsed');
+	for (let wd of work_data.models) {
+		hours.push(wd.get('time_elapsed'));
+		monthly_hours = monthly_hours + wd.get('time_elapsed');
 	}
 
-	let vacation_data = await Work.select('time_elapsed').where('user_id', 1).where('type_id', vacation_id).get();
+	let vacation_data = await Work.select('time_elapsed').where('user_id', user.id).where('type_id', vacation_id).where('day', 'like', `${month}%`).get();
 	let vacation_hours = 0;
 	for (let vd of vacation_data.models) {
 		vacation_hours = vacation_hours + vd.get('time_elapsed');
 	}
 
-	let sick_leave_data = await Work.select('time_elapsed').where('user_id', 1).where('type_id', sick_leave_id).get();
+	let sick_leave_data = await Work.select('time_elapsed').where('user_id', user.id).where('type_id', sick_leave_id).where('day', 'like', `${month}%`).get();
 	let sick_leave_hours = 0;
 	for (let sld of sick_leave_data.models) {
 		sick_leave_hours = sick_leave_hours + sld.get('time_elapsed');
@@ -425,7 +476,6 @@ async function monthlyWorkStats(ctx, next) {
 	};
 }
 
-// monthlyWorkStats();
 /**
  * Exported functions.
  * @type {Object}
@@ -437,5 +487,6 @@ module.exports = {
 	deleteWork,
 	dailyWork,
 	projectWork,
+	allTimeWorkStats,
 	monthlyWorkStats,
 };
