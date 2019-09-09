@@ -15,6 +15,7 @@ const VerifyController = require('./controllers/verify');
 const ProjectController = require('./controllers/project');
 const WorkTypeController = require('./controllers/work-type');
 const WorkController = require('./controllers/work');
+const ExportController = require('./controllers/export');
 
 // Create koa router instance.
 let router = new KoaRouter({
@@ -101,6 +102,9 @@ router.group('auth', () => {
 	router.del('work.delete', '/work/:id(\\d+)/delete', WorkController.deleteWork);
 	router.post('work.day', '/work/day', WorkController.dailyWork);
 	router.post('work.project', '/work/project', WorkController.projectWork);
+
+	// Work export
+	router.post('work.me.export', '/work/me/export', ExportController.exportMyWork);
 });
 
 /**

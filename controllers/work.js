@@ -1,7 +1,7 @@
 'use strict';
 
 const Joi = require('../helpers/joi-ext');
-const Moment = require('moment');
+const Moment = require('moment-timezone');
 const MomentRange = require('moment-range');
 const momentDurationFormatSetup = require('moment-duration-format');
 
@@ -67,7 +67,9 @@ async function showWork(ctx, next) {
  * @param {string} [description] Work description.
  */
 async function storeWork(ctx, next) {
-	let now = moment.utc().format('YYYY-MM-DD HH:mm:ss');
+	let tz = moment.tz.guess();
+	let now = moment.tz(Date.now(), tz).format("HH:mm:ss")
+	// let now = moment.utc().format('YYYY-MM-DD HH:mm:ss');
 	let body = Joi.validate(ctx.request.body, Joi.object().keys({
 		project_id: Joi.number().integer(),
 		type_id: Joi.number().integer().required(),
@@ -77,9 +79,9 @@ async function storeWork(ctx, next) {
 	}));
 
 	let user = await UserDAO.show(ctx, ctx.state.user.id, true);
-	let start = moment.utc(body.start).add(2, 'hours').format('YYYY-MM-DD HH:mm:ss');
-	let end = moment.utc(body.end).add(2, 'hours').format('YYYY-MM-DD HH:mm:ss');
-	let day = moment.utc(body.start).add(2, 'hours').format('YYYY-MM-DD');
+	let start = moment.tz(body.start, tz).format('YYYY-MM-DD HH:mm:ss');
+	let end = moment.tz(body.end, tz).format('YYYY-MM-DD HH:mm:ss');
+	let day = moment.tz(body.start, tz).format('YYYY-MM-DD');
 	let time_elapsed = moment(end).diff(start, 'seconds');
 	let daily_work = await UserDAO.dailyWork(ctx, user.id, day);
 
