@@ -47,7 +47,7 @@ function arrayUnique(array) {
  */
 async function showWork(ctx, next) {
 	let user = await UserDAO.show(ctx, ctx.state.user.id, true);
-	let work = await Work.where('user_id', user.id).withSelect('type', 'type').withSelect('project', 'name').get();
+	let work = await Work.where('user_id', user.id).withSelect('type', 'type').withSelect('project', ['name','color']).get();
 	for (let w of work.models) {
 		let daily_work = await UserDAO.dailyWork(ctx, user.id, w.get('day'));
 		w.set('daily_work', daily_work);
