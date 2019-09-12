@@ -27,13 +27,13 @@ async function getWorkProjects(ctx, next) {
  *
  * @param {string} name Project name.
  * @param {string} tag Project tag can be between 1 and 10 characters.
- * @param {string} [color] Project color hex code.
+ * @param {string} color Project color hex code.
  */
 async function store(ctx, next) {
 	let body = Joi.validate(ctx.request.body, Joi.object().keys({
 		name: Joi.string().required(),
 		tag: Joi.string().min(1).max(10).required(),
-		color: Joi.string().default(null),
+		color: Joi.string().required(),
 	}));
 	// Create the project.
 	let project = new Project({
@@ -41,6 +41,9 @@ async function store(ctx, next) {
 		tag: body.tag.toUpperCase(),
 		color: body.color,
 	});
+	//Check for duplicate projects
+	let count = await Project.where('name', body.name).count();
+	ctx.assert(count <= 0, 400, ctx.i18n.__('A project with this name alredy exists.'), { field: 'name' });
 
 	// Save the new project.
 	await project.save();

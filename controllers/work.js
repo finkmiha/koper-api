@@ -159,11 +159,14 @@ async function storeWork(ctx, next) {
 		});
 		await work.save();
 	}
-	//Store vacation / sick leave (TODO: Student vacation/ sick leave has no hours, employee gets 8 hours for vacation day)
+	//Store vacation / sick leave
 	else {
-		//8hours in seconds (employee vacation insert)
-		let dayOfWork = 8*60*60;
-
+		//Student vacation/ sick leave has no hours, employee gets 8 hours for vacation day
+		//TODO: Check sick leave hours for employees.
+		let dayOfWork = 0;
+		if (user.type === "Employee") {
+			dayOfWork = 8*60*60;
+		}
 		const range = moment.range(moment(start), moment(end));
 		const arrayOfDates = Array.from(range.by('day'))
 
