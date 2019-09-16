@@ -113,7 +113,7 @@ async function exportMyWork(ctx, next) {
 
 		let lunch = [];
 		for (let i = 0; i < work[day].lunch_end.length; i++) {
-			lunch = lunch + `${work[day].lunch_start[i]} - ${work[day].lunch_end[i]} `;
+			lunch.push(`${work[day].lunch_start[i]} - ${work[day].lunch_end[i]}`);
 		}
 		work[day].lunch_intervals = lunch.join(', ');
 		delete work[day].lunch_end;
