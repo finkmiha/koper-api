@@ -4,13 +4,17 @@ const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const User = require('../models/user');
+const isString = require('lodash/isString');
+const isArray = require('lodash/isArray');
+const get = require('lodash/get');
+const assign = require('lodash/assign');
+
 const SecretHelper = require('../helpers/secret');
 const CooldownHelper = require('../helpers/cooldown');
+const AuthTokenInvalidateHelper = require('../helpers/auth-token-invalidate');
 
-const isString = require('lodash/isString');
-const get = require('lodash/get');
-
+const ApiKeyDAO = require('../dao/api-key');
+const User = require('../models/user');
 const Role = require('../models/role');
 const Session = require('../models/session');
 
@@ -22,9 +26,9 @@ let rollingJWTSecrets = [];
  * Settings.
  */
 
-const ROLLING_SECRET_TIMEOUT = 60 * 60 * 1000; // In miliseconds.
-const ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000; // In miliseconds.
-const SESSION_MAX_AGE = null; // In miliseconds, null is infinite.
+const ROLLING_SECRET_TIMEOUT = 60 * 60 * 1000; // In milliseconds.
+const ACCESS_TOKEN_MAX_AGE = AuthTokenInvalidateHelper.ACCESS_TOKEN_MAX_AGE; // 15 min in milliseconds.
+const SESSION_MAX_AGE = null; // In milliseconds, null is infinite.
 const USE_COOKIES = true;
 
 // TODO: reCAPTCHA for registration and anonymous login/session?
@@ -40,7 +44,6 @@ async function throttlePerIP(ctx) {
 		if (enableCooldown) {
 			await CooldownHelper.attempt(ctx, [`login_throttle_ip_${ctx.state.ip}`], CooldownHelper.COOLDOWNS_LOGIN);
 		}
-
 	} catch (error) {
 		terror = error;
 	}
@@ -127,7 +130,7 @@ async function checkCredentials(ctx, userQuery, password) {
 }
 
 /**
- * Helper function to clear expired rolling JWT secrets and to enerate new secrets.
+ * Helper function to clear expired rolling JWT secrets and to generate new secrets.
  */
 function rollJWTSecrets() {
 	for (let secret of rollingJWTSecrets) {
@@ -148,7 +151,7 @@ function rollJWTSecrets() {
 }
 
 /**
- * Helper function to sign JWT token with rolling screts.
+ * Helper function to sign JWT token with rolling secrets.
  *
  * @param {object} data
  * @param {object} opts
@@ -159,7 +162,7 @@ function rollingJWTSign(data, opts) {
 }
 
 /**
- * Helper function to verify JWT token with rolling screts.
+ * Helper function to verify JWT token with rolling secrets.
  *
  * @param {string} token JWT string.
  */
@@ -169,6 +172,9 @@ function rollingJWTVerify(token) {
 	for (let secret of rollingJWTSecrets) {
 		try {
 			let decoded = jwt.verify(token, secret.secret);
+			if (!AuthTokenInvalidateHelper.isValid(decoded)) {
+				throw new Error('Token was invalidated.');
+			}
 			return decoded;
 		} catch (error) {
 			if (verror == null) verror = error;
@@ -179,29 +185,74 @@ function rollingJWTVerify(token) {
 }
 
 /**
+ * Get user's data for the access token.
+ *
+ * @param {KoaContext} ctx
+ * @param {integer} userId
+ */
+async function getUserData(ctx, userId) {
+	let user = await User.select(['id', 'email_verified_at'])
+		.where('id', userId).withSelect('roles', ['id']).first();
+
+	if (user == null) {
+		if (ctx == null) throw new Error('User not found.');
+		else ctx.throw(400, 'User not found.');
+	}
+	user = user.toJSON();
+
+	let dataObj = {
+		u: user.id, // User id.
+		v: (user.email_verified_at != null) ? 1 : 0, // Is user's email verified.
+	};
+	if (user.roles.length > 0) dataObj.r = user.roles.map(r => r.id); // User's roles.
+	return dataObj;
+}
+
+function decodeUserData(token) {
+	// Create the user object.
+	let user = {
+		id: token.u,
+		roles: new Set(resolveRoles(token.r)),
+	};
+
+	// Attach the hasRole/can function to the user.
+	user.hasRole = (roleNames) => {
+		if (!isArray(roleNames)) roleNames = [roleNames];
+		for (let roleName of roleNames) {
+			if (user.roles.has(roleName)) return true;
+		}
+		return false;
+	};
+	user.can = user.hasRole;
+
+	// Cast the set of role names to an array when serialized to JSON.
+	user.roles.toJSON = () => {
+		return Array.from(user.roles);
+	};
+
+	return user;
+}
+
+/**
  * Helper function to create and set the access token.
  *
  * @param {KoaContext} ctx
  * @param {object} session Session object.
  * @param {string} key Secret session key.
  */
-async function createAndSetAccessToken(ctx, session, key) {
-	// Get user roles.
-	let user_id = session.user_id;
-	let roles = await Role.select(['id']).whereHas('users', (uq) => {
-		uq.where('id', user_id);
-	}).get();
-	roles = roles.toJSON().map(r => r.id);
-
-	// Data setup for JWT token.
-	let dataObj = {
+async function createAccessTokenData(ctx, session, key) {
+	let userId = session.user_id;
+	let dataObj = await getUserData(ctx, userId);
+	dataObj = assign(dataObj, {
 		t: 'a', // Type: access token.
 		s: session.id, // Session id.
 		k: key, // Secret session key.
-		u: user_id, // User id.
-		r: roles, // User's roles.
 		c: Date.now(), // Created at.
-	};
+	});
+	return dataObj;
+}
+
+function setAccessToken(ctx, dataObj) {
 	// Create signed token.
 	let token = rollingJWTSign(dataObj, {
 		expiresIn: Math.floor(ACCESS_TOKEN_MAX_AGE / 1000), // Must be passed in as seconds.
@@ -219,7 +270,18 @@ async function createAndSetAccessToken(ctx, session, key) {
 		if (SESSION_MAX_AGE != null) cookieOpts.maxAge = SESSION_MAX_AGE;
 		ctx.cookies.set('token', token, cookieOpts);
 	}
+}
 
+/**
+ * Helper function to create and set the access token.
+ *
+ * @param {KoaContext} ctx
+ * @param {object} session Session object.
+ * @param {string} key Secret session key.
+ */
+async function createAndSetAccessToken(ctx, session, key) {
+	let dataObj = await createAccessTokenData(ctx, session, key);
+	setAccessToken(ctx, dataObj);
 	return dataObj;
 }
 
@@ -227,23 +289,22 @@ async function createAndSetAccessToken(ctx, session, key) {
  * Login.
  *
  * @param {KoaContext} ctx
- * @param {integer} user_id
+ * @param {integer} userId
  */
-async function login(ctx, user_id) {
-
+async function login(ctx, userId) {
 	// Remove all expired sessions.
 	await Session.isExpired().delete({ require: false });
 
 	// Store the session in the database.
 	let sessionKey = SecretHelper.generateSecret(); // Generate random session key.
-	let expires_at = null;
+	let expiresAt = null;
 	if (SESSION_MAX_AGE != null) {
-		expires_at = moment.utc().add(SESSION_MAX_AGE, 'ms').format('YYYY-MM-DD HH:mm:ss');
+		expiresAt = moment.utc().add(SESSION_MAX_AGE, 'ms').format('YYYY-MM-DD HH:mm:ss');
 	}
 	let session = new Session({
 		key: await bcrypt.hash(sessionKey, 10),
-		user_id: user_id,
-		expires_at: expires_at,
+		user_id: userId,
+		expires_at: expiresAt,
 		data: null,
 	});
 	await session.save();
@@ -257,20 +318,22 @@ async function login(ctx, user_id) {
  * Logout.
  *
  * @param {KoaContext} ctx
- * @param {integer} [user_id] Pass the user id if you want to clear all sessions for this user.
+ * @param {integer} [userId] Pass the user id if you want to clear all sessions for this user.
  */
-async function logout(ctx, user_id = null) {
+async function logout(ctx, userId = null) {
 	// Clear all sessions for the given user id.
-	if (user_id != null) {
-		await Session.where('user_id', user_id).delete({ require: false });
+	if (userId != null) {
+		AuthTokenInvalidateHelper.invalidateUser(userId);
+		await Session.where('user_id', userId).delete({ require: false });
 	}
 
 	let ctxUserId = get(ctx, 'state.user.id', null);
-	if ((user_id == null) || (user_id === ctxUserId)) {
+	if ((userId == null) || (userId === ctxUserId)) {
 		// Remove the session from the database.
-		let session_id = get(ctx, 'state.session.id', null);
-		if (session_id != null) {
-			await Session.where('id', session_id).delete({ require: false });
+		let sessionId = get(ctx, 'state.session.id', null);
+		if (sessionId != null) {
+			AuthTokenInvalidateHelper.invalidateSession(sessionId);
+			await Session.where('id', sessionId).delete({ require: false });
 		}
 
 		// Override the header.
@@ -338,6 +401,19 @@ async function validateToken(ctx, token) {
 	// return null;
 }
 
+async function checkApiKey(ctx) {
+	try {
+		if (ctx.headers['x-api-key'] == null) return null;
+		let keyObj = await ApiKeyDAO.check(ctx.headers['x-api-key']);
+		if (keyObj == null) return null;
+		if (keyObj.user_id == null) return null;
+		let decoded = await getUserData(ctx, keyObj.user_id);
+		return decoded;
+	} catch (error) {
+		return null;
+	}
+}
+
 /**
  * Get and verify auth token.
  *
@@ -346,6 +422,10 @@ async function validateToken(ctx, token) {
 async function getToken(ctx) {
 	// Try to find the JWT token.
 	let token = null;
+
+	// Check for the API key.
+	let decoded = await checkApiKey(ctx);
+	if (decoded != null) return decoded;
 
 	// First try to get the session token from the authorization header.
 	if (ctx.headers.authorization != null) {
@@ -367,7 +447,7 @@ async function getToken(ctx) {
 
 	// Validate token and return decoded token data.
 	try {
-		let decoded = await validateToken(ctx, token);
+		decoded = await validateToken(ctx, token);
 		return decoded;
 	} catch (error) {
 		return null;
@@ -422,30 +502,17 @@ async function init() {
  * @param {object} token
  */
 function setAuthUser(ctx, token) {
-	// Create the user object.
-	let user = {
-		id: token.u,
-		roles: new Set(resolveRoles(token.r)),
-	};
+	ctx.state = ctx.state || {};
 
-	// Attach the hasRole/can function to the user.
-	user.hasRole = (roleName) => {
-		return user.roles.has(roleName);
-	};
-	user.can = user.hasRole;
-
-	// Cast the set of role names to an array when searialized to JSON.
-	user.roles.toJSON = () => {
-		return Array.from(user.roles);
-	};
+	// Create the user object and attach the user the context state.
+	let user = decodeUserData(token);
+	ctx.state.user = user;
 
 	// Attach the session to the context state.
 	ctx.state.session = {
-		id: token.s,
+		id: token.s || null,
+		key: token.k || null,
 	};
-
-	// Attach the user  the context state.
-	ctx.state.user = user;
 }
 
 /**
@@ -460,4 +527,5 @@ module.exports = {
 	logout,
 	getToken,
 	setAuthUser,
+	getUserData,
 };

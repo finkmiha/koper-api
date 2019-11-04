@@ -30,7 +30,7 @@ router.registerMiddleware('body', koaBody({
 	formLimit: '50mb',
 	textLimit: '50mb',
 	multipart: true,
-	strict: false,
+	parsedMethods: ['POST', 'PUT', 'PATCH', 'DELETE'],
 }));
 router.registerMiddleware('auth', AuthMiddleware.auth);
 // router.registerMiddleware('autoAuth', AuthMiddleware.autoAuth); // Automatically login as super admin.

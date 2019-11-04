@@ -16,7 +16,7 @@ function scheduleReload() {
 
 async function reload() {
 	try {
-		let keys = await ApiKey.select(['id', 'expires_at', 'key']).isValid().get();
+		let keys = await ApiKey.select(['id', 'user_id', 'expires_at', 'key']).isValid().get();
 		keys = keys.map(k => k.attributes);
 		API_KEYS = new Map();
 		for (let k of keys) API_KEYS.set(k.id, k);
@@ -35,7 +35,9 @@ async function check(key) {
 		let expAt = moment.utc(keyObj.expires_at, 'X'); // TODO: fix when removing unix format
 		if (moment.utc().isAfter(expAt)) throw new Error('API key not found.');
 	}
-	if (!(await bcrypt.compare(key, keyObj.key))) throw new Error('Invalid API key.');
+	let isValid = await bcrypt.compare(key, keyObj.key);
+	console.log(key, isValid);
+	if (!isValid) throw new Error('Invalid API key.');
 	return keyObj;
 }
 
@@ -56,7 +58,8 @@ async function checkDuplicateName(ctx, name) {
 }
 
 async function generateKey() {
-	let key = SecretHelper.generateSecret(10);
+	// NOTE: bcrypt has a maximum password length of 72 characters/bytes.
+	let key = SecretHelper.generateSecret(18);
 	let hash = await bcrypt.hash(key, 10);
 	return {
 		key: key,

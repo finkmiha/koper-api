@@ -9,6 +9,7 @@ const Log = require('unklogger');
 
 const DatabaseHelper = require('./helpers/database');
 const AuthHelper = require('./helpers/auth');
+const ApiKeyDAO = require('./dao/api-key');
 
 // Require middleware.
 const mwLogger = require('./middleware/logger');
@@ -30,6 +31,7 @@ const mwFrontEnd = require('./middleware/serve-front-end');
 		await DatabaseHelper.migrateLatest(); // Run latest database migrations.
 	}
 	await AuthHelper.init();
+	ApiKeyDAO.scheduleReload();
 
 	// Create a Koa server instance.
 	const app = new Koa();
