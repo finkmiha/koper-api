@@ -41,7 +41,7 @@ async function showMeAccount(ctx, next) {
  * @param {string} email
  */
 async function showEmail(ctx, next) {
-	let body = Joi.validate(ctx.query, Joi.object().keys({
+	let body = Joi.attempt(ctx.query, Joi.object().keys({
 		email: Joi.string().email().min(4).max(64).required().error(() => ctx.i18n.__('Please enter a valid email address.')),
 	}));
 
@@ -63,7 +63,7 @@ async function showEmail(ctx, next) {
  *
  */
 async function store(ctx, next) {
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		first_name: Joi.string().required(),
 		last_name: Joi.string().required(),
 		email: Joi.string().email().min(4).max(64).required().error(() => ctx.i18n.__('Please enter a valid email address.')),
@@ -102,7 +102,7 @@ async function store(ctx, next) {
  * @param {boolean} [is_push_notify_enabled]
  */
 async function updateMe(ctx, next) {
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		first_name: Joi.string().allow('').allow(null).default(null),
 		last_name: Joi.string().allow('').allow(null).default(null),
 		type: Joi.string().allow(null).default(null),
@@ -121,10 +121,10 @@ async function updateMe(ctx, next) {
 	}));
 
 	if (isNonEmptyString(body.backup_email)) {
-		Joi.validate(body.backup_email, Joi.string().email().min(4).max(64).error(() => ctx.i18n.__('Please enter a valid backup email address.')));
+		Joi.attempt(body.backup_email, Joi.string().email().min(4).max(64).error(() => ctx.i18n.__('Please enter a valid backup email address.')));
 	} else body.backup_email = null;
 	if (isNonEmptyString(body.notify_email)) {
-		Joi.validate(body.notify_email, Joi.string().email().min(4).max(64).error(() => ctx.i18n.__('Please enter a valid notification email address.')));
+		Joi.attempt(body.notify_email, Joi.string().email().min(4).max(64).error(() => ctx.i18n.__('Please enter a valid notification email address.')));
 	} else body.notify_email = null;
 
 	// Check old password.

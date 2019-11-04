@@ -29,7 +29,7 @@ async function exportMyWork(ctx, next) {
 	let user = await UserDAO.show(ctx, ctx.state.user.id, true);
 	let month = moment.utc().format('YYYY-MM');
 	// let month = "2019-08";
-	// let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	// let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 	// 	project_id: Joi.number().integer(),
 	// 	type_id: Joi.number().integer().required(),
 	// 	start: Joi.date().required(),

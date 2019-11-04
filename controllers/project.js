@@ -30,7 +30,7 @@ async function getWorkProjects(ctx, next) {
  * @param {string} color Project color hex code.
  */
 async function store(ctx, next) {
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		name: Joi.string().required(),
 		tag: Joi.string().min(1).max(10).required(),
 		color: Joi.string().required(),
@@ -60,7 +60,7 @@ async function store(ctx, next) {
  */
 async function update(ctx, next) {
 	let id = parseInt(ctx.params.id);
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		name: Joi.string().default(null),
 		tag: Joi.string().min(1).max(10).default(null),
 		color: Joi.string().default(null),

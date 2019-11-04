@@ -19,7 +19,7 @@ async function index(ctx, next) {
  * @param {string} type Work type.
  */
 async function store(ctx, next) {
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		type: Joi.string().required(),
 	}));
 	// Create the project.
@@ -40,7 +40,7 @@ async function store(ctx, next) {
  */
 async function update(ctx, next) {
 	let id = parseInt(ctx.params.id);
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		type: Joi.string().default(null),
 	}));
 	let wt = await WorkType.select(['id', 'type']).where('id', id).first();

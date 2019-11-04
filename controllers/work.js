@@ -70,7 +70,7 @@ async function storeWork(ctx, next) {
 	let tz = moment.tz.guess();
 	let now = moment.tz(Date.now(), tz).format("HH:mm:ss")
 	// let now = moment.utc().format('YYYY-MM-DD HH:mm:ss');
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		project_id: Joi.number().integer(),
 		type_id: Joi.number().integer().required(),
 		start: Joi.date().required(),
@@ -203,7 +203,7 @@ async function storeWork(ctx, next) {
  */
 async function updateWork(ctx, next) {
 	let id = parseInt(ctx.params.id);
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		project_id: Joi.number().integer().default(null),
 		type_id: Joi.number().integer().default(null),
 		start: Joi.date().default(null),
@@ -268,7 +268,7 @@ async function deleteWork(ctx, next) {
  * @param {string} day Day of work.
  */
 async function dailyWork(ctx, next) {
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		day: Joi.date().required(),
 	}));
 
@@ -286,7 +286,7 @@ async function dailyWork(ctx, next) {
  * @param {integer} month Day of work.
  */
 async function monthlyWork(ctx, next) {
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		month: Joi.integer().required(),
 	}));
 
@@ -312,7 +312,7 @@ async function monthlyWork(ctx, next) {
  * @param {integer[]} project_ids Project id.
  */
 async function projectWork(ctx, next) {
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		project_ids: Joi.array().items(Joi.number().integer()).single().default([]),
 	}));
 	let user = await UserDAO.show(ctx, ctx.state.user.id, true);

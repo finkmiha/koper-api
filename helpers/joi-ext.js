@@ -1,5 +1,7 @@
 'use strict';
 
+const MomentExtension = require('./joi-moment');
+
 const JoiStringConvertible = function(joi) {
 	return {
 		base: joi.string(),
@@ -16,16 +18,14 @@ const JoiStringConvertible = function(joi) {
 	};
 };
 
-const Joi = require('joi').extend([ JoiStringConvertible ]);
+const Joi = require('joi').extend([ JoiStringConvertible ]).extend(MomentExtension);
 const extend = require('lodash/extend');
 
 const settings = {
 	passwordMinLength: 6,
 	passwordMaxLength: 255,
-	// passwordRegex: /^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*()\-_=+\\|[\]{};:/?.><]).*$/,
-	// passwordErrorMessage: 'Please enter stronger password. Use at least 1 uppercase, 1 lowercase, 1 numeric and 1 special character.',
-	passwordRegex: /^(?=.*\d)(?=.*[a-z]).*$/,
-	passwordErrorMessage: 'Please enter stronger password. Use at least 1 lowercase character and at least 1 number.',
+	passwordRegex: /^(?=.*\d)(?=.*[A-Za-z]).*$/,
+	passwordErrorMessage: 'Password must contain at at least one letter and one number.',
 };
 
 // Set a default error handler.
@@ -35,18 +35,34 @@ Joi.validate = (data, schema, options) => {
 		allowUnknown: true,
 		stripUnknown: true,
 	};
-
 	options = extend(baseOptions, options);
-	let {
-		error,
-		value,
-	} = Joi.originalValidateFn(data, schema, options);
+	let result = Joi.originalValidateFn(data, schema, options);
+	return result;
+};
 
-	if (error != null) {
-		throw error;
+Joi.attempt = function(value, schema, message, options) {
+	const result = this.validate(value, schema, options);
+	const error = result.error;
+
+	if (error) {
+		if (!message) {
+			// if (typeof error.annotate === 'function') {
+			// 	error.message = error.annotate();
+			// }
+			throw error;
+		}
+
+		if (!(message instanceof Error)) {
+			if (typeof error.annotate === 'function') {
+				error.message = `${message} ${error.annotate()}`;
+			}
+			throw error;
+		}
+
+		throw message;
 	}
 
-	return value;
+	return result.value;
 };
 
 Joi.password = () => {
@@ -54,8 +70,8 @@ Joi.password = () => {
 		.regex(settings.passwordRegex, settings.passwordErrorMessage);
 };
 
-Joi.colour = () => {
-	return Joi.string().regex(/^#[0-9a-f]{6}$/i, 'Invalid colour value.');
+Joi.color = () => {
+	return Joi.string().regex(/^#[0-9a-f]{6}$/i, 'Invalid color value.');
 };
 
 /**
