@@ -20,4 +20,12 @@ module.exports = Bookshelf.model('Work', {
 	project: function() {
 		return this.belongsTo('Project', 'project_id');
 	},
+
+	/**
+	 * Scopes.
+	 */
+
+	scopes: {
+		isOwner: (q, userId) => q.be.isOwnerScope(userId),
+	},
 });

@@ -17,6 +17,7 @@ const ProjectController = require('./controllers/project');
 const WorkTypeController = require('./controllers/work-type');
 const WorkController = require('./controllers/work');
 const ExportController = require('./controllers/export');
+const ImportController = require('./controllers/import');
 
 // Create koa router instance.
 let router = new KoaRouter({
@@ -107,6 +108,10 @@ router.group('auth', () => {
 
 	// Work export
 	router.post('work.me.export', '/work/me/export', ExportController.exportMyWork);
+
+	// Work import.
+	router.post('work.me.import.store', '/work/me/import', ImportController.store);
+	router.post('work.me.import.store.bulk', '/work/me/import/bulk', ImportController.storeBulk);
 });
 
 /**
