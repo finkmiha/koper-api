@@ -1,7 +1,6 @@
 'use strict';
 
 const Bookshelf = require('../bookshelf');
-const isOwnerScope = require('../helpers/is-owner-scope');
 
 require('./role');
 require('./user-data');
@@ -45,7 +44,7 @@ module.exports = Bookshelf.model('User', {
 	 */
 
 	scopes: {
-		isMe: (q, userId) => isOwnerScope(q, userId, 'id'),
+		isMe: (q, userId) => q.be.isOwnerScope(userId, 'id'),
 		isAdmin: function(q) {
 			// Q.be.whereHas('roles', (subq) => {
 			// 	subq.where('name', 'admin');

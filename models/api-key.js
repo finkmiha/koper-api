@@ -26,12 +26,15 @@ module.exports = Bookshelf.model('ApiKey', {
 	 */
 
 	scopes: {
+		isOwner: (q, userId) => q.be.isOwnerScope(userId),
+
 		isEnabled: function(q) {
 			q.be.where('enabled', true);
 		},
 		isDisabled: function(q) {
 			q.be.where('enabled', false);
 		},
+
 		isExpired: function(q) {
 			let ctime = moment.utc().format('YYYY-MM-DD HH:mm:ss');
 			q.be.where((wq) => {
