@@ -5,7 +5,7 @@
   "main": "index.js",
   "private": true,
   "dependencies": {
-    "async-lock": "^1.2.0",
+    "async-lock": "^1.2.2",
     "bcryptjs": "^2.4.3",
     "bookshelf": "^0.14.2",
     "bookshelf-eloquent": "^0.1.15",

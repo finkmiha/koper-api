@@ -4,13 +4,14 @@ const KoaRouter = require('koa-router');
 const KoaRouterGroups = require('koa-router-groups');
 const KoaApiExplorer = require('./libs/koa-api-explorer/index');
 
-// Require middlewares.
+// Require middleware.
 const koaBody = require('koa-body');
 const AuthMiddleware = require('./middleware/auth');
 
 // Require all exposed controllers.
 const AuthController = require('./controllers/auth');
 const UserController = require('./controllers/user');
+const ApiKeyController = require('./controllers/api-key');
 const VerifyController = require('./controllers/verify');
 const ProjectController = require('./controllers/project');
 const WorkTypeController = require('./controllers/work-type');
@@ -23,7 +24,7 @@ let router = new KoaRouter({
 });
 KoaRouterGroups.extend(router);
 
-// Register middlewares.
+// Register middleware.
 router.registerMiddleware('body', koaBody({
 	jsonLimit: '50mb',
 	formLimit: '50mb',
@@ -57,16 +58,11 @@ router.post('auth.login', '/auth/login', AuthController.login);
 // User register.
 router.post('users.store', '/users/store', UserController.store);
 router.get('users.email.show', '/users/email', UserController.showEmail);
-// router.get('users.show.email', '/users/email', UserController.showEmail);
-// router.post('users.store', '/users', UserController.store);
 
 // Verification.
 router.post('verify.sendEmail', '/verify/send/email', VerifyController.sendVerifyEmail);
 router.post('verify.verifyToken', '/verify/verify/token', VerifyController.verifyToken);
 router.post('verify.verify', '/verify/verify', VerifyController.verify);
-
-// GDPR.
-// router.get('gdpr.index', '/gdpr', GdprController.index);
 
 // Auth group. Any routes in this group need to pass the "AuthMiddleware.auth" middleware.
 router.group('auth', () => {
@@ -79,6 +75,12 @@ router.group('auth', () => {
 	router.get('users.showMe', '/users/me', UserController.showMe);
 	router.put('users.updateMe', '/users/me', UserController.updateMe);
 	router.del('users.destroyMe', '/users/me', UserController.destroyMe);
+
+	// API keys.
+	router.get('api-keys.index', '/api-keys', ApiKeyController.index);
+	router.post('api-keys.store', '/api-keys', ApiKeyController.store);
+	router.put('api-keys.update', '/api-keys/:id(\\d+)', ApiKeyController.update);
+	router.del('api-keys.destroy', '/api-keys/:id(\\d+)', ApiKeyController.destroy);
 
 	// Project.
 	router.post('project.store', '/project/store', ProjectController.store);

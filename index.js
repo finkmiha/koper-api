@@ -4,7 +4,6 @@
 process.chdir(__dirname);
 require('./load-env');
 
-const path = require('path');
 const Koa = require('koa');
 const Log = require('unklogger');
 
@@ -53,7 +52,6 @@ const mwFrontEnd = require('./middleware/serve-front-end');
 
 	// Routes.
 	await routes.applyUse(app);
-	// await routesAdmin.applyUse(app);
 
 	// Middleware after routes.
 	app.use(mwPublic);

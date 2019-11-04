@@ -58,7 +58,7 @@ async function showEmail(ctx, next) {
  * @param {string} last_name
  * @param {string} email
  * @param {string} password Please enter stronger password. Use at least 1 lowercase character and at least 1 number.
- * @param {string} type
+ * @param {string} type "Employee" or "Student".
  * @param {string} role Available roles: 'admin' or 'user'.
  *
  */
