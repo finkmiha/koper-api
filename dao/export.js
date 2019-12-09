@@ -102,6 +102,9 @@ async function createExcelExport(ctx, month) {
 	});
 
 	let thinBorder = wb.createStyle({
+		alignment: {
+			wrapText: true,
+		},
 		border: {
 			left: {
 				style: 'thin',
@@ -206,7 +209,7 @@ async function createExcelExport(ctx, month) {
 
 async function getExportData(ctx, month) {
 	let user = await UserDAO.show(ctx, ctx.state.user.id, true);
-	// Let user = { id: 2 };
+	// let user = { id: 1 };
 	// Let month = moment.utc().format('YYYY-MM');
 	// let month = '2019-11';
 	let from_date = moment.utc().format(`${month}-01`);
@@ -239,7 +242,7 @@ async function getExportData(ctx, month) {
 		date = moment.utc(date).add(1, 'day').format('YYYY-MM-DD');
 	}
 
-	let workIntervals = await Work.where('user_id', user.id).where('day', 'like', `${month}%`).withSelect('project', 'name').withSelect('type', 'type').get();
+	let workIntervals = await Work.where('user_id', user.id).where('day', 'like', `${month}%`).whereNull('deleted_at').withSelect('project', 'name').withSelect('type', 'type').get();
 	workIntervals = workIntervals.toJSON();
 
 	for (let workInterval of workIntervals) {
@@ -247,7 +250,7 @@ async function getExportData(ctx, month) {
 		let date = workInterval.day;
 		let start = moment.utc(workInterval.start).format('HH:mm');
 		let end = moment.utc(workInterval.end).format('HH:mm');
-		if (type == 'Effective work') {
+		if (type == 'Effective work' || type == 'Work') {
 			work[date].start.push(start);
 			work[date].end.push(end);
 			work[date].work_done += workInterval.time_elapsed;
@@ -314,7 +317,7 @@ async function getExportData(ctx, month) {
 			if (extra_hours >= 0 && extra_hours < 3600) {
 				work[date].extra_hours = '00:' + moment.duration(extra_hours, 'seconds').format('hh[:]mm');
 			} else if (extra_hours > -3600 && extra_hours < 0) {
-				work[date].extra_hours = '-00:' + moment.duration(extra_hours, 'seconds').format('hh[:]mm');
+				work[date].extra_hours = '-00:' + moment.duration(Math.abs(extra_hours), 'seconds').format('hh[:]mm');
 			} else {
 				work[date].extra_hours = moment.duration(extra_hours, 'seconds').format('hh[:]mm');
 			}
@@ -326,12 +329,14 @@ async function getExportData(ctx, month) {
 			lunch_count += 1;
 		}
 
-		if (work[date].work_done < 3600) {
+		if (work[date].work_done < 3600 && work[date].work_done > 0) {
 			work[date].work_done = '00:' + moment.duration(work[date].work_done, 'seconds').format('hh[:]mm');
+		} else if (work[date].work_done > -3600 && work[date].work_done < 0) {
+			work[date].work_done = '-00:' + moment.duration(Math.abs(work[date].work_done), 'seconds').format('hh[:]mm');
 		} else {
 			work[date].work_done = moment.duration(work[date].work_done, 'seconds').format('hh[:]mm');
 		}
-		if (work[date].work_done === '00:00') work[date].work_done = '';
+		if (work[date].work_done === '00:00' || work[date].work_done === '00') work[date].work_done = '';
 
 		while (work[date].lunch.length < 6) {
 			work[date].lunch.push('');
