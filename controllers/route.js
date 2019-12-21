@@ -14,6 +14,7 @@ async function getRoute(ctx, next) {
 
     let id = parseInt(ctx.params.id);
     let route = await Route.where("id", id).first();
+    ctx.assert(route, 400, `Route with id ${id} doesn't exist.`);
 
 	ctx.body = route;
 }

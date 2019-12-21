@@ -26,6 +26,7 @@ async function getLocation(ctx, next) {
 
     let id = parseInt(ctx.params.id);
     let location = await Location.where("id", id).first();
+    ctx.assert(location, 400, `Location with id ${id} doesn't exist.`);
     location = location.toJSON();
 
     let locationRoutes = await Route.select(["name", "difficulty", "length", "sector", "first_ascent"]).where("location_id", id).get();
