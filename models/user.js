@@ -4,6 +4,7 @@ const Bookshelf = require('../bookshelf');
 const isOwnerScope = require('../helpers/is-owner-scope');
 
 require('./role');
+require('./grade');
 
 module.exports = Bookshelf.model('User', {
 	tableName: 'users',
@@ -28,6 +29,9 @@ module.exports = Bookshelf.model('User', {
 	 */
 	roles: function() {
 		return this.belongsToMany('Role', 'user_has_roles', 'user_id', 'role_id');
+	},
+	grades: function() {
+		return this.hasMany('Grade', 'user_id');
 	},
 
 	/**

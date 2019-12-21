@@ -5,6 +5,8 @@ const cheerio = require("cheerio");
 const axios = require("axios");
 const url = require("url");
 
+const Location = require("../models/location");
+
 /**
  * Scrape slovenian climbing sites.
  *
@@ -23,51 +25,38 @@ async function scrape() {
 	}
 
 	let $ = cheerio.load(data);
-    let links = [];
-    let items = $("table.fmtTable.active.striped.expandable tr").get();
+	let locations = Location.collection();
+    let tableRows = $("table.fmtTable.active.striped.expandable tr").get();
 
-	if (items.length === 0) {
-		response.error = "No climbing sites found.";
-		return response;
+	if (tableRows.length === 0) {
+		throw new Error("No climbing sites found.");
 	}
 
-	for (let item of items) {
-		let href = $(item).find("td a").attr("href");
+	for (let tableRow of tableRows) {
+		let href = $(tableRow).find("td a").attr("href");
+		let location = $(tableRow).find("td a").text().trim();
+		let lcount = await Location.where("name", location).count();
+
+		let location_link = null;
 
         if (typeof href !== "undefined") {
-            links.push(url.resolve(link, href));
+			location_link = url.resolve(link, href) + "&p_ord=n";
+		}
+		
+		if (location !== "" && lcount == 0) {    
+			// TODO: write script for region calculation (set to Slovenia for now).
+    		locations.add({name: location, region_id: 6, source_url: location_link});
         }
 	}
-	
-	
-	Log.success("Climbing sites", "Finished scraping slovenia climbing sites.");
-	for (let link of links) {
-		scrapeClimbingSite(link)
+	if (locations.models.length > 0) {
+		await locations.insert();
 	}
-
+	
+	Log.success("Climbing sites", "Finished scraping climbing site.");
 }
+
 scrape();
 
-/**
- * Scrape slovenian climbing sites.
- *
- */
-async function scrapeClimbingSite(link) {
-	let data = null;
-	try {
-        let response = await axios.get(link);
-		data = response.data;
-		Log.info("Climbing sites", "Scraping slovenia climbing sites.");
-	} catch (error) {
-		Log.error("Climbing sites", "Failed to scrape url " + link);
-		throw error;
-	}
-
-	// TODO: Scrape climbing site
-
-
-	// TODO: Save site data to database
-}
 
 /**
  * Exported functions.

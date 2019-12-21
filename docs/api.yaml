@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   version: 1.0.0
-  title: API Explorer Dev
+  title: API Explorer Stage
 contact:
   name: Heckatlon Koper
   email: mihafink333@gmail.com
@@ -45,6 +45,53 @@ paths:
         - file: auth
           handler: logout
       parameters: []
+  /location/all:
+    get:
+      tags:
+        - Location
+      description: Get List of locations.
+      summary: >-
+        location.index&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspGet List of
+        locations.
+      operationId: location.index
+      x-controller:
+        - file: location
+          handler: index
+      parameters: []
+  '/location/{id}':
+    get:
+      tags:
+        - Location
+      description: Get location by id.
+      summary: >-
+        location.location&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspGet location
+        by id.
+      operationId: location.location
+      x-controller:
+        - file: location
+          handler: getLocation
+      parameters:
+        - name: id
+          in: path
+          description: Location id.
+          required: true
+          type: integer
+  '/route/{id}':
+    get:
+      tags:
+        - Route
+      description: Get route by id.
+      summary: route.route&nbsp&nbsp&nbsp&nbsp-&nbsp&nbsp&nbsp&nbspGet route by id.
+      operationId: route.route
+      x-controller:
+        - file: route
+          handler: getRoute
+      parameters:
+        - name: id
+          in: path
+          description: Route id.
+          required: true
+          type: integer
   /users:
     post:
       tags:

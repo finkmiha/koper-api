@@ -12,6 +12,8 @@ const AuthMiddleware = require('./middleware/auth');
 const AuthController = require('./controllers/auth');
 const UserController = require('./controllers/user');
 const VerifyController = require('./controllers/verify');
+const LocationController = require('./controllers/location');
+const RouteController = require('./controllers/route');
 
 // Create koa router instance.
 let router = new KoaRouter({
@@ -53,6 +55,13 @@ router.get('users.email.show', '/users/email', UserController.showEmail);
 router.post('verify.sendEmail', '/verify/send/email', VerifyController.sendVerifyEmail);
 router.post('verify.verifyToken', '/verify/verify/token', VerifyController.verifyToken);
 router.post('verify.verify', '/verify/verify', VerifyController.verify);
+
+// Location
+router.get('location.index', '/location/all', LocationController.index);
+router.get('location.location', '/location/:id(\\d+)', LocationController.getLocation);
+
+// Route
+router.get('route.route', '/route/:id(\\d+)', RouteController.getRoute);
 
 // Auth group. Any routes in this group need to pass the "AuthMiddleware.auth" middleware.
 router.group('auth', () => {
