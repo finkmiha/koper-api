@@ -25,7 +25,7 @@ const mwFrontEnd = require('./middleware/serve-front-end');
 
 // Async wrapper. Enable await calls.
 (async () => {
-	await DatabaseHelper.waitForDatabase();
+	// await DatabaseHelper.waitForDatabase();
 	if (process.env.AUTO_MIGRATE_DB === 'true') {
 		await DatabaseHelper.createDatabase(); // Create database if it does not exists.
 		await DatabaseHelper.migrateLatest(); // Run latest database migrations.
