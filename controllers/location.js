@@ -29,7 +29,7 @@ async function getLocation(ctx, next) {
     ctx.assert(location, 400, `Location with id ${id} doesn't exist.`);
     location = location.toJSON();
 
-    let locationRoutes = await Route.select(["name", "difficulty", "length", "sector", "first_ascent"]).where("location_id", id).get();
+    let locationRoutes = await Route.select(["id", "name", "difficulty", "length", "sector", "first_ascent"]).where("location_id", id).get();
     locationRoutes = locationRoutes.toJSON();
 
     delete location.created_at;
