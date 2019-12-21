@@ -2,8 +2,8 @@
 
 exports.up = async function(knex) {
 	await knex.schema.createTable('users', (table) => {
-		table.charset('utf8');
-		table.collate('utf8_unicode_ci');
+		// table.charset('utf8');
+		// table.collate('utf8_unicode_ci');
 
 		// Primary key.
 		table.increments('id').unsigned().primary();

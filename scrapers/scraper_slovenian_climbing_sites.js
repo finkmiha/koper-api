@@ -6,7 +6,7 @@ const axios = require("axios");
 const url = require("url");
 
 /**
- * Scrape and calculate shares outstanding from NASDAQ Key Stock Data.
+ * Scrape slovenian climbing sites.
  *
  */
 async function scrape() {
@@ -37,11 +37,37 @@ async function scrape() {
         if (typeof href !== "undefined") {
             links.push(url.resolve(link, href));
         }
-    }
-    Log.success("Climbing sites", "Finished scraping slovenia climbing sites.");
+	}
+	
+	
+	Log.success("Climbing sites", "Finished scraping slovenia climbing sites.");
+	for (let link of links) {
+		scrapeClimbingSite(link)
+	}
 
 }
-// scrape();
+scrape();
+
+/**
+ * Scrape slovenian climbing sites.
+ *
+ */
+async function scrapeClimbingSite(link) {
+	let data = null;
+	try {
+        let response = await axios.get(link);
+		data = response.data;
+		Log.info("Climbing sites", "Scraping slovenia climbing sites.");
+	} catch (error) {
+		Log.error("Climbing sites", "Failed to scrape url " + link);
+		throw error;
+	}
+
+	// TODO: Scrape climbing site
+
+
+	// TODO: Save site data to database
+}
 
 /**
  * Exported functions.

@@ -27,7 +27,7 @@ const mwFrontEnd = require('./middleware/serve-front-end');
 (async () => {
 	// await DatabaseHelper.waitForDatabase();
 	if (process.env.AUTO_MIGRATE_DB === 'true') {
-		await DatabaseHelper.createDatabase(); // Create database if it does not exists.
+		// await DatabaseHelper.createDatabase(); // Create database if it does not exists.
 		await DatabaseHelper.migrateLatest(); // Run latest database migrations.
 	}
 	await AuthHelper.init();

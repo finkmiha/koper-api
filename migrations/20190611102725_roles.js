@@ -13,8 +13,8 @@ const ROLES = [
 
 exports.up = async function(knex) {
 	await knex.schema.createTable('roles', (table) => {
-		table.charset('utf8');
-		table.collate('utf8_unicode_ci');
+		// table.charset('utf8');
+		// table.collate('utf8_unicode_ci');
 
 		// Primary key.
 		table.increments('id').unsigned().primary();
@@ -25,9 +25,9 @@ exports.up = async function(knex) {
 	});
 
 	// Insert roles.
-	let roles = Role.collection();
-	for (let role of ROLES) roles.add(role);
-	await roles.insert();
+	// let roles = Role.collection();
+	// for (let role of ROLES) roles.add(role);
+	// await roles.insert();
 };
 
 exports.down = async function(knex) {
