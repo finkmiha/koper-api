@@ -13,7 +13,7 @@ async function index(ctx, next) {
     let locations = await Location.get();
     locations = locations.toJSON();
 
-	ctx.body = locations;
+	ctx.body = { locations };
 }
 
 
