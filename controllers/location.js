@@ -43,7 +43,19 @@ async function getLocation(ctx, next) {
     }
     // Add Difficulty level END
 
-    location = Object.assign(location, {routes: locationRoutes});
+    // Add Difficulty Range
+    let aDifficultyLevels = locationRoutes.map(rnd_number => rnd_number.difficulty_level);
+    let minDifficulty = aDifficulties[Math.min(...aDifficultyLevels)];
+    let maxDifficulty = aDifficulties[Math.max(...aDifficultyLevels)];
+    // Add Routes Length
+    let routesLength = locationRoutes.length
+
+    location = Object.assign(
+        location, 
+        {number_of_routes:routesLength}, 
+        {min_difficulty:minDifficulty}, 
+        {max_difficulty:maxDifficulty}, 
+        {routes: locationRoutes});
     
 	ctx.body = location;
 }
