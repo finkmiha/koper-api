@@ -13,7 +13,38 @@ async function index(ctx, next) {
     let locations = await Location.get();
     locations = locations.toJSON();
 
-	ctx.body = { locations };
+    for (let location of locations){
+        let locationRoutes = await Route.select(["id", "name", "difficulty", "length", "sector", "first_ascent"]).where("location_id", location.id).get();
+        locationRoutes = locationRoutes.toJSON();
+    // Add Difficulty level
+    for(var i = 0; i<locationRoutes.length; i++){
+    let difficulty_level_indetifier = locationRoutes[i].difficulty.split('(')[0].trim();
+    var difficulty_level = aDifficulties.indexOf(difficulty_level_indetifier);
+    locationRoutes[i]['difficulty_level'] = difficulty_level;
+    }
+    // Add Difficulty level END
+
+    // Add Difficulty Range
+    let aDifficultyLevels = locationRoutes.map(rnd_number => rnd_number.difficulty_level);
+    aDifficultyLevels = aDifficultyLevels.filter(i => i != -1)
+
+    let minDifficulty = aDifficulties[Math.min(...aDifficultyLevels)];
+    let maxDifficulty = aDifficulties[Math.max(...aDifficultyLevels)];
+    // Add Routes Length
+    let routesLength = locationRoutes.length
+
+    location.number_of_routes=routesLength
+    location.min_difficulty=minDifficulty
+    location.max_difficulty=maxDifficulty
+
+    // {number_of_routes:routesLength}, 
+    // {min_difficulty:minDifficulty}, 
+    // {max_difficulty:maxDifficulty}, 
+    }
+
+	ctx.body = { 
+        locations 
+    };
 }
 
 
@@ -45,6 +76,8 @@ async function getLocation(ctx, next) {
 
     // Add Difficulty Range
     let aDifficultyLevels = locationRoutes.map(rnd_number => rnd_number.difficulty_level);
+    aDifficultyLevels = aDifficultyLevels.filter(i => i != -1)
+
     let minDifficulty = aDifficulties[Math.min(...aDifficultyLevels)];
     let maxDifficulty = aDifficulties[Math.max(...aDifficultyLevels)];
     // Add Routes Length
