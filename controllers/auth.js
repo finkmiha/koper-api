@@ -13,7 +13,7 @@ const User = require('../models/user');
  */
 async function login(ctx, next) {
 	// Validate input.
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		email: Joi.string().max(255).required(),
 		password: Joi.string().allow('').required(),
 	}));

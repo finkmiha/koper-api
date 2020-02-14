@@ -59,7 +59,7 @@ function strtr(_this, trFrom, trTo) {
  * @return {string}
  */
 // This function is used to generate the JWT secret.
-function generateSecret() {
+function generateSecret(size = 20) {
 	// Generate a random token.
 	//    http://stackoverflow.com/questions/8855687/secure-random-token-in-node-js
 	//    http://stackoverflow.com/questions/1856785/characters-allowed-in-a-url
@@ -68,7 +68,7 @@ function generateSecret() {
 	//    Char is base64: [A-Za-z0-9+/] and [=] for padding
 
 	// Token byte size should be a multiple of 3 so that there is no base64 padding added (=).
-	const tokenSize = 3 * 20; // 60
+	const tokenSize = 3 * size;
 
 	// Repeat until the generated token is unique.
 	return strtr(crypto.randomBytes(tokenSize).toString('base64'), '/+', '_-');

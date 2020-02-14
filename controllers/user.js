@@ -18,6 +18,14 @@ async function showMe(ctx, next) {
 }
 
 /**
+ * Get the logged in user.
+ */
+async function showMeData(ctx, next) {
+	let user = await UserDAO.show(ctx, ctx.state.user.id, true);
+	ctx.body = user;
+}
+
+/**
  * Get the logged in user's account page info.
  */
 async function showMeAccount(ctx, next) {
@@ -33,29 +41,35 @@ async function showMeAccount(ctx, next) {
  * @param {string} email
  */
 async function showEmail(ctx, next) {
-	let body = Joi.validate(ctx.query, Joi.object().keys({
+	let body = Joi.attempt(ctx.query, Joi.object().keys({
 		email: Joi.string().email().min(4).max(64).required().error(() => ctx.i18n.__('Please enter a valid email address.')),
 	}));
 
 	let count = await User.where('email', body.email).count();
-	ctx.assert(count <= 0, 400, ctx.i18n.__('The username already exists. Please use a different username or login.'), { field: 'email' });
+	ctx.assert(count <= 0, 400, ctx.i18n.__('This email is alredy taken. Please use a different email or login.'), { field: 'email' });
 
-	ctx.body = { message: ctx.i18n.__('Username is still free.') };
+	ctx.body = { message: ctx.i18n.__('Email is still free.') };
 }
 
 /**
  * Register a new user.
  *
+ * @param {string} first_name
+ * @param {string} last_name
  * @param {string} email
  * @param {string} password Please enter stronger password. Use at least 1 lowercase character and at least 1 number.
+ * @param {string} type "Employee" or "Student".
  * @param {string} role Available roles: 'admin' or 'user'.
  *
  */
 async function store(ctx, next) {
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
+		first_name: Joi.string().required(),
+		last_name: Joi.string().required(),
 		email: Joi.string().email().min(4).max(64).required().error(() => ctx.i18n.__('Please enter a valid email address.')),
 		password: Joi.password().required(),
 		role: Joi.string().valid(['admin', 'user']).default('user'),
+		type: Joi.string().valid(['Employee', 'Student']).required(),
 	}));
 
 	// Get the user role.
@@ -73,6 +87,7 @@ async function store(ctx, next) {
  *
  * @param {string} [first_name]
  * @param {string} [last_name]
+ * @param {string} [type]
  * @param {string} [backup_email]
  * @param {string} [work_phone]
  * @param {string} [private_phone]
@@ -87,9 +102,10 @@ async function store(ctx, next) {
  * @param {boolean} [is_push_notify_enabled]
  */
 async function updateMe(ctx, next) {
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		first_name: Joi.string().allow('').allow(null).default(null),
 		last_name: Joi.string().allow('').allow(null).default(null),
+		type: Joi.string().allow(null).default(null),
 		backup_email: Joi.string().allow('').allow(null).default(null),
 		work_phone: Joi.string().allow('').allow(null).default(null),
 		private_phone: Joi.string().allow('').allow(null).default(null),
@@ -105,10 +121,10 @@ async function updateMe(ctx, next) {
 	}));
 
 	if (isNonEmptyString(body.backup_email)) {
-		Joi.validate(body.backup_email, Joi.string().email().min(4).max(64).error(() => ctx.i18n.__('Please enter a valid backup email address.')));
+		Joi.attempt(body.backup_email, Joi.string().email().min(4).max(64).error(() => ctx.i18n.__('Please enter a valid backup email address.')));
 	} else body.backup_email = null;
 	if (isNonEmptyString(body.notify_email)) {
-		Joi.validate(body.notify_email, Joi.string().email().min(4).max(64).error(() => ctx.i18n.__('Please enter a valid notification email address.')));
+		Joi.attempt(body.notify_email, Joi.string().email().min(4).max(64).error(() => ctx.i18n.__('Please enter a valid notification email address.')));
 	} else body.notify_email = null;
 
 	// Check old password.
@@ -158,6 +174,7 @@ async function destroyMe(ctx, next) {
  */
 module.exports = {
 	showMe,
+	showMeData,
 	showMeAccount,
 	showEmail,
 	store,

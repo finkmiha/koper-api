@@ -4,12 +4,12 @@
 process.chdir(__dirname);
 require('./load-env');
 
-const path = require('path');
 const Koa = require('koa');
 const Log = require('unklogger');
 
 const DatabaseHelper = require('./helpers/database');
 const AuthHelper = require('./helpers/auth');
+const ApiKeyDAO = require('./dao/api-key');
 
 // Require middleware.
 const mwLogger = require('./middleware/logger');
@@ -25,12 +25,13 @@ const mwFrontEnd = require('./middleware/serve-front-end');
 
 // Async wrapper. Enable await calls.
 (async () => {
-	// await DatabaseHelper.waitForDatabase();
+	await DatabaseHelper.waitForDatabase();
 	if (process.env.AUTO_MIGRATE_DB === 'true') {
-		// await DatabaseHelper.createDatabase(); // Create database if it does not exists.
+		await DatabaseHelper.createDatabase(); // Create database if it does not exists.
 		await DatabaseHelper.migrateLatest(); // Run latest database migrations.
 	}
 	await AuthHelper.init();
+	ApiKeyDAO.scheduleReload();
 
 	// Create a Koa server instance.
 	const app = new Koa();
@@ -53,7 +54,6 @@ const mwFrontEnd = require('./middleware/serve-front-end');
 
 	// Routes.
 	await routes.applyUse(app);
-	// await routesAdmin.applyUse(app);
 
 	// Middleware after routes.
 	app.use(mwPublic);

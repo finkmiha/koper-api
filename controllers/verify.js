@@ -15,7 +15,7 @@ const AuthHelper = require('../helpers/auth');
  */
 async function sendVerifyEmail(ctx, next) {
 	// Validate input.
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		email: Joi.string().email().required(),
 	}));
 
@@ -69,7 +69,7 @@ async function verifyTokenHelper(ctx, token) {
  */
 async function verifyToken(ctx, next) {
 	// Validate input.
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		token: Joi.string().required(),
 	}));
 
@@ -86,7 +86,7 @@ async function verifyToken(ctx, next) {
  */
 async function verify(ctx, next) {
 	// Validate input.
-	let body = Joi.validate(ctx.request.body, Joi.object().keys({
+	let body = Joi.attempt(ctx.request.body, Joi.object().keys({
 		token: Joi.string().required(),
 	}));
 

@@ -6,7 +6,7 @@ const path = require('path');
 require(path.resolve(__dirname, './load-env'));
 
 module.exports = {
-	client: 'pg',
+	client: 'mysql',
 	connection: {
 		host: process.env.MYSQL_HOST,
 		port: process.env.MYSQL_PORT,

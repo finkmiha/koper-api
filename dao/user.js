@@ -4,7 +4,7 @@ const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 // const QWE = require('../helpers/qwe');
-const EmailHelper = require('../helpers/email');
+//TODO: const EmailHelper = require('../helpers/email');
 // const LambdaHelper = require('../helpers/lambda');
 
 const isArray = require('lodash/isArray');
@@ -12,6 +12,7 @@ const get = require('lodash/get');
 
 const Role = require('../models/role');
 const User = require('../models/user');
+const Work = require('../models/work');
 // const AddressDAO = require('../dao/address');
 
 /**
@@ -77,11 +78,11 @@ async function sendVerificationEmail(ctx, userId, email) {
 	// Build verify link.
 	let actionUrl = `${process.env.CLIENT_BASE_URL}/api/verify/verify/${token}`;
 
-	// Send the verify email.
-	EmailHelper.sendEmail(ctx, 'verify', {
-		email_address: user.email,
-		action_url: actionUrl,
-	});
+	//TODO: Send the verify email.
+	// EmailHelper.sendEmail(ctx, 'verify', {
+	// 	email_address: user.email,
+	// 	action_url: actionUrl,
+	// });
 
 	return { message: ctx.i18n.__('E-mail sent.') };
 }
@@ -97,7 +98,7 @@ async function sendVerificationEmail(ctx, userId, email) {
 async function store(ctx, data, role_ids = [], emailVerified = false) {
 	// Check for duplicate email.
 	let emailCount = await User.where('email', data.email).count();
-	ctx.assert(emailCount <= 0, 400, ctx.i18n.__('The username already exists. Please use a different username or login.'), { field: 'email' });
+	ctx.assert(emailCount <= 0, 400, ctx.i18n.__('This email is alredy taken. Please use a different email or login.'), { field: 'email' });
 
 	// Check if roles exist.
 	if (role_ids.length > 0) {
@@ -114,9 +115,12 @@ async function store(ctx, data, role_ids = [], emailVerified = false) {
 
 	// Create the user.
 	let user = new User({
+		first_name: data.first_name,
+		last_name: data.last_name,
 		email: data.email,
 		password: (data.password != null) ? await bcrypt.hash(data.password, 10) : null,
 		email_verified_at: emailVerified ? moment.utc().format('YYYY-MM-DD HH:mm:ss') : null,
+		type: data.type,
 		// address_id: address.id,
 	});
 
@@ -137,7 +141,7 @@ async function store(ctx, data, role_ids = [], emailVerified = false) {
 	if (!emailVerified) {
 		// TODO: Send different email depending if password was set or not.
 		// Send the "set password"/"email verification"/"invitation" email. Don't await.
-		await sendVerificationEmail(ctx, userId, null, data.app_type);
+		// await sendVerificationEmail(ctx, userId, null, data.app_type);
 	}
 
 	return user;
@@ -178,6 +182,8 @@ async function update(ctx, userId, data, role_ids = null) {
 
 	if (data.first_name != null) user.set('first_name', data.first_name);
 	if (data.last_name != null) user.set('last_name', data.last_name);
+	if (data.email != null) user.set('email', data.email); //TODO: Send verification email if email is changed!
+	if (data.type != null) user.set('type', data.type);
 	if (data.backup_email != null) user.set('backup_email', data.backup_email);
 	if (data.private_phone != null) user.set('private_phone', data.private_phone);
 	if (data.work_phone != null) {
@@ -253,6 +259,28 @@ async function destroy(ctx, userId) {
 }
 
 /**
+ * Get user daily work.
+ *
+ * @param {KoaContext} ctx In this case context is just used for throwing errors and not for checking permissions.
+ * @param {integer} userId
+ * @param {string} day
+ */
+async function dailyWork(ctx, userId, day) {
+	let dailyWork = await Work.where('day', day).where('user_id', userId).get();
+
+	// Check if the project was found.
+	// ctx.assert(dailyWork, 400, ctx.i18n.__(`Work for user ${userId} on ${day} not found.`));
+
+	let time_elapsed = 0;
+	for (let dw of dailyWork.models) {
+		time_elapsed = time_elapsed + dw.get('time_elapsed');
+	}
+
+	// Return daily work done.
+	return time_elapsed;
+}
+
+/**
  * Exported functions.
  * @type {Object}
  */
@@ -262,5 +290,6 @@ module.exports = {
 	update,
 	destroy,
 
+	dailyWork,
 	sendVerificationEmail,
 };

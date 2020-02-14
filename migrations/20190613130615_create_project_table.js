@@ -1,16 +1,17 @@
 'use strict';
 
 exports.up = async function(knex) {
-	await knex.schema.createTable('locations', (table) => {
+	await knex.schema.createTable('project', (table) => {
+		table.charset('utf8');
+		table.collate('utf8_unicode_ci');
+
 		// Primary key.
 		table.increments('id').unsigned().primary();
 
-        table.integer('region_id').unsigned().notNullable().references('regions.id').onDelete('CASCADE');
-        table.string('name').notNullable().index();
-        table.string('description').nullable();
-        table.string('source_url').nullable().index();
+		table.string('name').nullable().index();
+		table.string('tag').nullable().index();
 
-        // Timestamps.
+		// Timestamps.
 		table.timestamp('created_at').notNullable().defaultTo(knex.fn.now()).index();
 		table.timestamp('updated_at').notNullable().defaultTo(knex.fn.now()).index();
 		table.timestamp('deleted_at').nullable().index(); // Soft delete (used for keeping history).
@@ -18,5 +19,5 @@ exports.up = async function(knex) {
 };
 
 exports.down = async function(knex) {
-	await knex.schema.dropTable('locations');
+	await knex.schema.dropTable('project');
 };

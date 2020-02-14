@@ -1,16 +1,18 @@
 'use strict';
 
 exports.up = async function(knex) {
-	await knex.schema.createTable('state', (table) => {
+	await knex.schema.createTable('api_keys', (table) => {
 		table.charset('utf8');
 		table.collate('utf8_unicode_ci');
 
 		// Primary key.
 		table.increments('id').unsigned().primary();
-
-		table.string('key').nullable().index();
-		table.string('secondary_key').nullable().index();
-		table.text('value', 'longtext').nullable();
+		table.integer('user_id').unsigned().notNullable().references('users.id').onUpdate('CASCADE').onDelete('RESTRICT');
+		table.boolean('enabled').notNullable().defaultsTo(false).index();
+		table.timestamp('expires_at').nullable().index();
+		table.string('name').nullable().index();
+		table.string('key').notNullable().index();
+		table.text('description', 'longtext').nullable();
 
 		// Timestamps.
 		table.timestamp('created_at').notNullable().defaultTo(knex.fn.now()).index();
@@ -20,5 +22,5 @@ exports.up = async function(knex) {
 };
 
 exports.down = async function(knex) {
-	await knex.schema.dropTable('state');
+	await knex.schema.dropTable('api_keys');
 };
