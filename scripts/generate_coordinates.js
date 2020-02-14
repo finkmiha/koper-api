@@ -40,6 +40,4 @@ async function getLocationCoordinates() {
     }
 }
     
-
-
 getLocationCoordinates();

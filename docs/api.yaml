@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   version: 1.0.0
-  title: API Explorer Stage
+  title: API Explorer Dev
 contact:
   name: Heckatlon Koper
   email: mihafink333@gmail.com
