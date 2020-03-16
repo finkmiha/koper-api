@@ -44,7 +44,7 @@
     "vue-cli": "^2.9.6"
   },
   "devDependencies": {
-    "acorn": "^5.4.1",
+    "acorn": "^5.7.4",
     "callsite": "^1.0.0",
     "comment-parser": "^0.5.0",
     "js-yaml": "^3.10.0",
